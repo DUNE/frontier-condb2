@@ -36,3 +36,80 @@ This repository contains the code and documentation related to the installation,
   - `sudo` does not work on FermiCloud VMs.
   - SSH into the VM directly for root access: `ssh -l root fermicloud725.fnal.gov`
   - There was an issue with being added to the correct group for root access. Needed `/root/.k5login` modified to give me access.
+
+## Frontier "Launchpad" Server Setup on FermiCloud Test Instance
+
+### Relevant Documentation
+- [Frontier Distributed Database Caching System Overview](https://twiki.cern.ch/twiki/bin/view/Frontier/FrontierOverview)
+- [Installing frontier-tomcat](https://twiki.cern.ch/twiki/bin/view/Frontier/FrontierOverview)
+
+### Installation
+
+- Follow the above linked installation document.
+- Do not make any of the changes detailed in the "Preparation" section.
+- Follow all of the steps in the "Installation" section, but substitute the `dnf` command in for `yum`.
+- Before you run `[root@fermicloud725 ~]# systemctl enable frontier-tomcat` do the following:
+  - As root user, you need to install `initscripts` and `chkconfig`.
+    ```
+    [root@fermicloud725 ~]# dnf install initscripts chkconfig
+    ```
+
+### Configuration
+
+- Add the following configuration to `/etc/tomcat/servlets.conf`
+  ```
+  [dune_runcon_prod]
+  LongCacheExpireSeconds: 300
+  ShortCacheExpireSeconds: 300
+  MaxDbAcquireSeconds: 300
+  MaxThreads: 5
+  FileBaseDirectory: https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/
+  ```
+- Before you run `[root@fermicloud725 ~]# systemctl start frontier-tomcat`:
+  - You will need to run - `ln -s /etc/rc.d/init.d /etc/init.d` to make sure that it can find the correct startup script.
+  - The `frontier-tomcat` installation creates the `tomcat` user and group, but not the associated `/home` directory.
+  - Create the required directory:
+    ```
+    [root@fermicloud725 ~]# mkdir /home/tomcat
+    [root@fermicloud725 ~]# chown -R tomcat:tomcat /home/tomcat
+    ```
+
+- A network security group needs to be created to allow IPv4 and IPv6 ingress access to port 8080.
+  - This allows for requests to be handled by the `frontier-tomcat` servlet.
+  - In the OpenStack dashboard go to `Network > Security Groups`.
+    - Click the "Create Security Group" button.
+    ![Alt text](./docs/images/create_sec_group.png "Create Security Group Button")
+    - Give the group a name and optional description. We used `internal-tomcat`.
+    - Once the security group has been created, delete the "Egress" rules.
+    - Then add two "Ingress" rules; one for IPv4 and one for IPv6.
+    ![Alt text](./docs/images/sec_group_rules.png "Security Group Rules")
+  - This security group now needs to be added to your FermiCloud instance.
+    - Find your instance on the "Instances" view.
+    - Select "Edit Security Groups" from the "Actions" dropdown menu.
+    ![Alt text](./docs/images/edit_sec_group.png "Edit Instance Security Groups")
+    - Add the security group to the list of "Instance Security Groups and save it.
+    ![Alt text](./docs/images/add_instance_sec_group.png "Instance Security Groups")
+
+### Connection Testing
+
+- Test the connection between your `frontier-tomcat` setup and the ConDB2 API backend.
+  - **Note: You will need to be on the FNAL network to run the test. See the above VPN connection details.**
+  - The server should be listening on port 8080 at the domain name created for your FermiCloud instance.
+  - In a terminal on a separate system, run a query to the ConDB2 API, proxied by the connected Frontier server.
+  ```
+  $ curl -H "Accept: application/xml" -H "X-Frontier-Id: test" "http://fermicloud725.fnal.gov:8080/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300"
+  <?xml version="1.0" encoding="US-ASCII"?>
+  <!DOCTYPE frontier SYSTEM "http://frontier.fnal.gov/frontier.dtd">
+  <frontier version="3.42" xmlversion="1.0">
+   <transaction payloads="1">
+    <payload type="frontier_file" version="1" encoding="BLOB">
+     <data>BgAAAM9jaGFubmVsLHR2LHRyLGRhdGFfdHlwZSx1cGxvYWRfdGltZSxzdGFydF90aW1lLHN0b3Bf
+  dGltZSxydW5fdHlwZSxzb2Z0d2FyZV92ZXJzaW9uLGJ1ZmZlcixhY19jb3VwbGUKMCwyMzMwMC4w
+  LDE3MDAwNjc0MDYuOTcyODkwMSxucDAyX2NvbGRib3gsMTcwMDA2NzQwNi45NzI4NjQ2LDE3MDAw
+  Njc4MDMuMCxOb25lLFRFU1QsZmQtdjQuMi4wLWM2LE5vbmUsTm9uZQoH</data>
+     <quality error="0" md5="3437dff6878ab524247531f6742ee8f9" records="1" full_size="213"/>
+    </payload>
+   </transaction>
+  </frontier>
+  ```
+
