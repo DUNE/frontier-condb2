@@ -113,3 +113,61 @@ This repository contains the code and documentation related to the installation,
   </frontier>
   ```
 
+## Frontier Squid Reverse Proxy Setup on FermiCloud Test Instance
+
+- The relevant documentation can be found here: [Installing Squid for a Frontier launchpad](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquidForLaunchpad)
+
+### Set the User Group ID
+
+- The `frontier-tomcat` install was done with the `tomcat` user and group IDs.
+- The [docs](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquidForLaunchpad#Preparation) recommend that the same user and group ID be used.
+  ```
+  [root@fermicloud725 ~]# export FRONTIER_USER=tomcat
+  [root@fermicloud725 ~]# export FRONTIER_GROUP=tomcat
+  ```
+
+### Squid Reverse Proxy Installation
+
+- Install `frontier-squid`.
+  ```
+  [root@fermicloud725 ~]# dnf install frontier-squid -y
+  ```
+- Set it to start at boot time.
+  ```
+  [root@fermicloud725 ~]# systemctl enable frontier-squid
+  ```
+
+### Configuration
+
+- Follow the configuration instructions from the documentation, but also edit `/cat/etc/squid/customize.sh` to reflect the following.
+  ```
+  #!/usr/bin/bash
+  #
+  # Edit customize.sh as you wish to customize squid.conf.
+  # It will not be overwritten by upgrades.
+  # See customhelps.awk for information on predefined edit functions.
+  # In order to test changes to this, run this to regenerate squid.conf:
+  #       /usr/libexec/squid/frontier-squid
+  # and to reload the changes into a running squid use
+  #       systemctl reload frontier-squid
+  # Avoid single quotes in the awk source or you have to protect them from bash.
+  #
+
+  HOSTNAME=`hostname`
+
+  awk --file `dirname $0`/customhelps.awk --source '{
+  setoption("acl NET_LOCAL src", "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10")
+  setoption("cache_mem", "128 MB")
+  setoptionparameter("cache_dir", 3, "10000")
+
+  setoption("http_port", "8000 accel defaultsite=127.0.0.1:8080 no-vhost")
+  setoption("cache_peer", "127.0.0.1 parent 8080 0 no-query originserver name=tomcat")
+  commentout("acl NET_LOCAL src")
+  commentout("http_access allow NET_LOCAL")
+  insertline("^http_access deny all", "http_access allow to_localhost")
+  setoption("read_ahead_gap", "200 MB")
+  setoption("shutdown_lifetime", "0 seconds")
+
+  print
+  }'
+  ```
