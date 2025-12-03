@@ -50,14 +50,14 @@ This repository contains the code and documentation related to the installation,
 - Follow all of the steps in the "Installation" section, but substitute the `dnf` command in for `yum`.
 - Before you run `[root@fermicloud725 ~]# systemctl enable frontier-tomcat` do the following:
   - As root user, you need to install `initscripts` and `chkconfig`.
-    ```
+    ```console
     [root@fermicloud725 ~]# dnf install initscripts chkconfig
     ```
 
 ### Configuration
 
 - Add the following configuration to `/etc/tomcat/servlets.conf`
-  ```
+  ```properties
   [dune_runcon_prod]
   LongCacheExpireSeconds: 300
   ShortCacheExpireSeconds: 300
@@ -69,7 +69,7 @@ This repository contains the code and documentation related to the installation,
   - You will need to run - `ln -s /etc/rc.d/init.d /etc/init.d` to make sure that it can find the correct startup script.
   - The `frontier-tomcat` installation creates the `tomcat` user and group, but not the associated `/home` directory.
   - Create the required directory:
-    ```
+    ```console
     [root@fermicloud725 ~]# mkdir /home/tomcat
     [root@fermicloud725 ~]# chown -R tomcat:tomcat /home/tomcat
     ```
@@ -96,7 +96,7 @@ This repository contains the code and documentation related to the installation,
   - **Note: You will need to be on the FNAL network to run the test. See the above VPN connection details.**
   - The server should be listening on port 8080 at the domain name created for your FermiCloud instance.
   - In a terminal on a separate system, run a query to the ConDB2 API, proxied by the connected Frontier server.
-  ```
+  ```console
   $ curl -H "Accept: application/xml" -H "X-Frontier-Id: test" "http://fermicloud725.fnal.gov:8080/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300"
   <?xml version="1.0" encoding="US-ASCII"?>
   <!DOCTYPE frontier SYSTEM "http://frontier.fnal.gov/frontier.dtd">
@@ -121,7 +121,7 @@ This repository contains the code and documentation related to the installation,
 
 - The `frontier-tomcat` install was done with the `tomcat` user and group IDs.
 - The [docs](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquidForLaunchpad#Preparation) recommend that the same user and group ID be used.
-  ```
+  ```console
   [root@fermicloud725 ~]# export FRONTIER_USER=tomcat
   [root@fermicloud725 ~]# export FRONTIER_GROUP=tomcat
   ```
@@ -129,18 +129,18 @@ This repository contains the code and documentation related to the installation,
 ### Squid Reverse Proxy Installation
 
 - Install `frontier-squid`.
-  ```
+  ```console
   [root@fermicloud725 ~]# dnf install frontier-squid -y
   ```
 - Set it to start at boot time.
-  ```
+  ```console
   [root@fermicloud725 ~]# systemctl enable frontier-squid
   ```
 
 ### Configuration
 
-- Follow the configuration instructions from the documentation, but also edit `/cat/etc/squid/customize.sh` to reflect the following.
-  ```
+- Follow the configuration instructions from the documentation, but also edit `/etc/squid/customize.sh` to reflect the following.
+  ```bash
   #!/usr/bin/bash
   #
   # Edit customize.sh as you wish to customize squid.conf.
@@ -170,4 +170,76 @@ This repository contains the code and documentation related to the installation,
 
   print
   }'
+  ```
+
+## Frontier Squid Cache Setup on Local Workstation
+
+### Relevant Documentation
+- [Installing a Frontier squid cache server](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquid)
+
+### Installation
+
+- Follow the above linked installation document.
+- Do not make any of the changes detailed in the "Preparation" section.
+
+### Configuration
+
+- Follow the configuration instructions from the documentation, but also edit `/etc/squid/customize.sh` to reflect the following.
+  ```bash
+  #!/usr/bin/bash
+  #
+  # Edit customize.sh as you wish to customize squid.conf.
+  # It will not be overwritten by upgrades.
+  # See customhelps.awk for information on predefined edit functions.
+  # In order to test changes to this, run this to regenerate squid.conf:
+  #       /usr/libexec/squid/frontier-squid
+  # and to reload the changes into a running squid use
+  #       systemctl reload frontier-squid
+  # Avoid single quotes in the awk source or you have to protect them from bash.
+  #
+
+  awk --file `dirname $0`/customhelps.awk --source '{
+  setoption("acl NET_LOCAL src", "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10")
+  setoption("cache_mem", "256 MB")
+  setoptionparameter("cache_dir", 3, "100000")
+  print
+  }'
+  ```
+
+### Testing the Cache
+
+- As a first test, follow the [Testing the installation](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquid#Testing_the_installation) instructions.
+  - Make sure to replace `MY.SQUID.HOST` with `localhost` for the first `export` command.
+    ```console
+    $ export http_proxy=http://localhost:3128
+    ```
+  - If you run the `wget` command twice as instructed, you should see something like the following in `/var/log/squid/access.log`.
+    ```log
+    127.0.0.1 - - [03/Dec/2025:12:42:15.010 -0700] "GET http://frontier.cern.ch/ HTTP/1.1" 200 10139 TCP_MISS:HIER_DIRECT 745 "- -" "-" "Wget/1.21.1"
+    127.0.0.1 - - [03/Dec/2025:12:43:05.277 -0700] "GET http://frontier.cern.ch/ HTTP/1.1" 200 10140 TCP_HIT:HIER_NONE 0 "- -" "-" "Wget/1.21.1"
+    ```
+- Test the connection between your local `frontier-squid` cache installation and the Frontier Launchpad server that you set up previously.
+  - **Note: You will need to be on the FNAL network to run the test. See the above VPN connection details.**
+  - The server should be listening on port 8000 at the domain name created for your FermiCloud instance.
+  - In a terminal on a the local system, run a query to the ConDB2 API. Do this twice to see the cache miss and then hit.
+  ```console
+  $ curl -H "Accept: application/xml" -H "X-Frontier-Id: test" "http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300"
+  <?xml version="1.0" encoding="US-ASCII"?>
+  <!DOCTYPE frontier SYSTEM "http://frontier.fnal.gov/frontier.dtd">
+  <frontier version="3.42" xmlversion="1.0">
+   <transaction payloads="1">
+    <payload type="frontier_file" version="1" encoding="BLOB">
+     <data>BgAAAM9jaGFubmVsLHR2LHRyLGRhdGFfdHlwZSx1cGxvYWRfdGltZSxzdGFydF90aW1lLHN0b3Bf
+  dGltZSxydW5fdHlwZSxzb2Z0d2FyZV92ZXJzaW9uLGJ1ZmZlcixhY19jb3VwbGUKMCwyMzMwMC4w
+  LDE3MDAwNjc0MDYuOTcyODkwMSxucDAyX2NvbGRib3gsMTcwMDA2NzQwNi45NzI4NjQ2LDE3MDAw
+  Njc4MDMuMCxOb25lLFRFU1QsZmQtdjQuMi4wLWM2LE5vbmUsTm9uZQoH</data>
+     <quality error="0" md5="3437dff6878ab524247531f6742ee8f9" records="1" full_size="213"/>
+    </payload>
+   </transaction>
+  </frontier>
+  ```
+- You should now see something like the following in `/var/log/squid/access.log`.
+  ```log
+  127.0.0.1 - - [03/Dec/2025:14:00:05.148 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300 HTTP/1.1" 200 1090 TCP_MISS:HIER_DIRECT 370 "test -" "-" "curl/7.76.1"
+  127.0.0.1 - - [03/Dec/2025:14:00:26.785 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300 HTTP/1.1" 200 1091 TCP_HIT:HIER_NONE 0 "test -" "-" "curl/7.76.1"
   ```
