@@ -172,7 +172,30 @@ This repository contains the code and documentation related to the installation,
   }'
   ```
 
-## Frontier Squid Cache Setup on Local Workstation
+### Connection Testing
+
+- Test the connection between your `frontier-squid` reverse proxy setup and the `frontier-tomcat` server.
+  - **Note: You will need to be on the FNAL network to run the test. See the above VPN connection details.**
+  - The reverse proxy should be listening on port 8000 at the domain name created for your FermiCloud instance.
+  - In a terminal on a separate system, run a query to the ConDB2 API, proxied by the connected Frontier server.
+  ```console
+  $ curl -H "Accept: application/xml" -H "X-Frontier-Id: test" "http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300"
+  <?xml version="1.0" encoding="US-ASCII"?>
+  <!DOCTYPE frontier SYSTEM "http://frontier.fnal.gov/frontier.dtd">
+  <frontier version="3.42" xmlversion="1.0">
+   <transaction payloads="1">
+    <payload type="frontier_file" version="1" encoding="BLOB">
+     <data>BgAAAM9jaGFubmVsLHR2LHRyLGRhdGFfdHlwZSx1cGxvYWRfdGltZSxzdGFydF90aW1lLHN0b3Bf
+  dGltZSxydW5fdHlwZSxzb2Z0d2FyZV92ZXJzaW9uLGJ1ZmZlcixhY19jb3VwbGUKMCwyMzMwMC4w
+  LDE3MDAwNjc0MDYuOTcyODkwMSxucDAyX2NvbGRib3gsMTcwMDA2NzQwNi45NzI4NjQ2LDE3MDAw
+  Njc4MDMuMCxOb25lLFRFU1QsZmQtdjQuMi4wLWM2LE5vbmUsTm9uZQoH</data>
+     <quality error="0" md5="3437dff6878ab524247531f6742ee8f9" records="1" full_size="213"/>
+    </payload>
+   </transaction>
+  </frontier>
+  ```
+
+## Frontier Squid Cache Setup on a Local Workstation
 
 ### Relevant Documentation
 - [Installing a Frontier squid cache server](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquid)
@@ -184,7 +207,8 @@ This repository contains the code and documentation related to the installation,
 
 ### Configuration
 
-- Follow the configuration instructions from the documentation, but also edit `/etc/squid/customize.sh` to reflect the following.
+- Follow the configuration instructions from the documentation, including [Personal squid on a desktop/laptop
+](https://twiki.cern.ch/twiki/bin/view/Frontier/InstallSquid#Personal_squid_on_a_desktop_lapt), but also edit `/etc/squid/customize.sh` to reflect the following.
   ```bash
   #!/usr/bin/bash
   #
@@ -199,9 +223,9 @@ This repository contains the code and documentation related to the installation,
   #
 
   awk --file `dirname $0`/customhelps.awk --source '{
-  setoption("acl NET_LOCAL src", "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10")
+  setoption("acl NET_LOCAL src", "127.0.0.1/32")
   setoption("cache_mem", "256 MB")
-  setoptionparameter("cache_dir", 3, "100000")
+  setoptionparameter("cache_dir", 3, "10000")
   print
   }'
   ```
