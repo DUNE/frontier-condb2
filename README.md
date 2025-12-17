@@ -335,5 +335,5 @@ This repository contains the code and documentation related to the installation,
       127.0.0.1 - - [17/Dec/2025:11:01:19.396 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.run_conditionstest%2526t%253d28650 HTTP/1.0" 200 1848 TCP_HIT:HIER_NONE 0 "client 2.10.2 208792 mike(1000) -" "-" "-"
       ```
   - The response from the above query will dump a CSV file with a name reflecting the `filepath` that you provided in the CLI call; E.g., `'get?folder=pdunesp.run_conditionstest&t=28650'`.
-    - Move the file to `<something>.csv`.
+    - Change the filename to `<something>.csv`.
     - Open the file and you should see the query results in CSV format.
