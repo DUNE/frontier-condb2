@@ -267,3 +267,73 @@ This repository contains the code and documentation related to the installation,
   127.0.0.1 - - [03/Dec/2025:14:00:05.148 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300 HTTP/1.1" 200 1090 TCP_MISS:HIER_DIRECT 370 "test -" "-" "curl/7.76.1"
   127.0.0.1 - - [03/Dec/2025:14:00:26.785 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300 HTTP/1.1" 200 1091 TCP_HIT:HIER_NONE 0 "test -" "-" "curl/7.76.1"
   ```
+
+## Local Frontier Client Build and Basic Query Testing
+
+***Note: The Frontier client code build was done using GCC 14.2.1 on an AlmaLinux 9 system. The following reflects the system configuration needed to build the code.***
+
+### Local Client Code Build
+
+- Follow the instructions found in [Frontier Client Usage](https://frontier.cern.ch/dist/FrontierClientUsage.html).
+- Steps that deviate from the above documentation are noted below.
+- In a local working directory fetch the latest Frontier code:
+  ```console
+  $ git clone https://github.com/fermitools/frontier.git
+  ```
+- Install the following build dependencies (if not already installed):
+  ```console
+  $ sudo dnf install openssl-devel
+  $ sudo dnf install zlib-devel
+  $ sudo dnf install expat expat-devel
+  ```
+- There is not a prebuilt [Pacparser](https://github.com/manugarg/pacparser) package for RHEL / AL9.
+  - You will need to download the source, then [build and install it locally](https://github.com/manugarg/pacparser/blob/main/INSTALL).
+    ```console
+    $ git clone https://github.com/manugarg/pacparser
+    ```
+  - To build it with GCC 14+, you will need to manually patch the `/<LOCALLY_CLONED_WORKING_DIR>/src/spidermonkey/js/src/jsapi.c` according to the instructions [found here](https://github.com/manugarg/pacparser/issues/194#issuecomment-2262030966).
+  - Build and install locally:
+    ```console
+    $ make -C src
+    $ sudo make -C src install
+    ```
+- Go to the Frontier client code directory and build the client.
+  ```console
+  $ cd /<LOCALLY_CLONED_WORKING_DIR>/frontier/client
+  $ make
+  ```
+
+### Client Connection and ConDB2 API Query Testing
+
+- Now that you have the client code built locally, you can test ConDB2 API queries through the entire Frontier stack that you set up in previous steps:
+  ```
+  Frontier client >> Squid local cache proxy >> Squid reverse proxy >> Frontier server >> ConDB2 API server
+  ```
+- From the local Frontier client source directory, use the `fn-fileget` CLI.
+  - Make sure that `$LD_LIBRARY_PATH` includes the Frontier client directory.
+    ```console
+    $ export LD_LIBRARY_PATH=/<LOCALLY_CLONED_WORKING_DIR>/frontier/client:$LD_LIBRARY_PATH
+    ```
+  - Test the CLI to make sure it executes correctly.
+    ```console
+    $ ./fn-fileget
+    No files requested
+    Usage: fn-fileget [-c connect_string] [-r|-R] filepath ...
+      -c connect_string: use given connect_string (default from environment)
+      -r: request short time-to-live
+      -R: request forever time-to-live
+    ```
+  - Test a ConDB2 API query with `fn-fileget`. *Note: This requires a FNAL VPN connection.*
+    ```console
+    $ ./fn-fileget -c "(serverurl=http://fermicloud725.fnal.gov:8000/dune_runcon_prod)(proxyurl=http://localhost:3128)" "get?folder=pdunesp.run_conditionstest&t=28650"
+    753 bytes written to get?folder=pdunesp.run_conditionstest&t=28650
+    ```
+    - You should see the cache miss / hit in `/var/log/squid/access.log`.
+      ```log
+      127.0.0.1 - - [17/Dec/2025:10:59:41.942 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.run_conditionstest%2526t%253d28650 HTTP/1.0" 200 1847 TCP_MISS:HIER_DIRECT 355 "client 2.10.2 208346 mike(1000) -" "-" "-"
+
+      127.0.0.1 - - [17/Dec/2025:11:01:19.396 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.run_conditionstest%2526t%253d28650 HTTP/1.0" 200 1848 TCP_HIT:HIER_NONE 0 "client 2.10.2 208792 mike(1000) -" "-" "-"
+      ```
+  - The response from the above query will dump a CSV file with a name reflecting the `filepath` that you provided in the CLI call; E.g., `'get?folder=pdunesp.run_conditionstest&t=28650'`.
+    - Move the file to `<something>.csv`.
+    - Open the file and you should see the query results in CSV format.
