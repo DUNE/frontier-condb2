@@ -19,11 +19,6 @@ COPY frontier-squid /etc/sysconfig/
 COPY servlets.conf servlets.passwd /etc/tomcat/
 
 RUN <<EOF
-    ls -al /etc/squid
-    ls -al /etc/tomcat
-EOF
-
-RUN <<EOF
     chmod a+x /etc/squid/customize.sh
     chown -R squid:tomcat /etc/squid
     chown -R tomcat:tomcat /etc/tomcat
@@ -32,12 +27,6 @@ RUN <<EOF
     chown -R tomcat:tomcat /home/tomcat
     systemctl enable frontier-tomcat
     systemctl enable frontier-squid
-EOF
-
-RUN <<EOF
-    ls -al /etc/squid
-    ls -al /etc/tomcat
-    ls -al /home/tomcat
 EOF
 
 # Podman supports running systemd in a container.
