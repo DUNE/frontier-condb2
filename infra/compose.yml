@@ -12,10 +12,12 @@ services:
         FRONTIER_USER: tomcat
     ports:
       - "8000:8000"
-  #   depends_on:
-  #     - condb2-rest-api
+    depends_on:
+      - condb2-rest-api
 
-  # condb2-rest-api:
-  #   container_name: condb2-rest-api
-  #   image: condb2-rest-api
-  #   build: ./condb2_rest_api
+  condb2-rest-api:
+    container_name: condb2-rest-api
+    image: condb2-rest-api
+    build: ./condb2_rest_api
+    ports:
+      - "8888:8888"
