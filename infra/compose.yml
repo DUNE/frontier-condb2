@@ -1,19 +1,19 @@
 name: frontier-condb2
 
 services:
-  # frontier-server:
-  #   container_name: frontier-server
-  #   image: frontier-server
-  #   build:
-  #     context: ./frontier_server
-  #     args:
-  #       FRONTIER_REL: "https://frontier.cern.ch/dist/rpms/RPMS/noarch/frontier-release-1.3-1.noarch.rpm"
-  #       FRONTIER_GROUP: tomcat
-  #       FRONTIER_USER: tomcat
-  #   ports:
-  #     - "8000:8000"
-  #   depends_on:
-  #     - condb2-rest-api
+  frontier-server:
+    container_name: frontier-server
+    image: frontier-server
+    build:
+      context: ./frontier_server
+      args:
+        FRONTIER_REL: "https://frontier.cern.ch/dist/rpms/RPMS/noarch/frontier-release-1.3-1.noarch.rpm"
+        FRONTIER_GROUP: tomcat
+        FRONTIER_USER: tomcat
+    ports:
+      - "8000:8000"
+    depends_on:
+      - condb2-rest-api
 
   condb2-rest-api:
     container_name: condb2-rest-api
