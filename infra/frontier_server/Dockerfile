@@ -1,4 +1,4 @@
-FROM almalinux:9 AS frontier-build
+FROM almalinux:9
 
 ARG FRONTIER_REL
 ARG FRONTIER_GROUP
@@ -31,5 +31,5 @@ EOF
 
 # Podman supports running systemd in a container.
 # It will set up all of the correct mount points and run
-# in a confined container by running `init` in the container.
+# in a confined container when running the `init` command.
 CMD [ "/usr/sbin/init" ]
