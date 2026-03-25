@@ -1,0 +1,39 @@
+name: Build and Push Podman Images
+
+on:
+  push:
+    # branches:
+    #   - main
+    #   - 18-containerize-frontier-condb2
+
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install podman and podman-compose
+        run: |
+          sudo apt update -y
+          sudo apt install -y podman podman-compose
+
+      - name: Log in to the Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
