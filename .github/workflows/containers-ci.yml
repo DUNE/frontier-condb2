@@ -2,9 +2,9 @@ name: Build and Push Podman Images
 
 on:
   push:
-    # branches:
-    #   - main
-    #   - 18-containerize-frontier-condb2
+    branches:
+      # - main
+      - 18-containerize-frontier-condb2
 
   pull_request:
 
@@ -41,14 +41,14 @@ jobs:
       - name: Log in to the Container Registry
         run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      # - name: Extract metadata (tags, labels) for Docker
+      #   id: meta
+      #   uses: docker/metadata-action@v6
+      #   with:
+      #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push images with podman-compose
         id: push
         run: |
-          podman-compose -f infra/compose.yml build --pull
+          podman-compose -f infra/compose.yml --podman-build-args "--network host" build --pull
           podman-compose -f infra/compose.yml push
