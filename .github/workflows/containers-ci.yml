@@ -28,12 +28,25 @@ jobs:
 
       - name: Install podman and podman-compose
         run: |
-          sudo apt update -y
-          sudo apt install -y podman podman-compose
+          sudo apt-get update -y
+          sudo apt-get install -y podman podman-compose
+
+      # - name: Log in to the Container Registry
+      #   uses: docker/login-action@v4
+      #   with:
+      #     registry: ${{ env.REGISTRY }}
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to the Container Registry
-        uses: docker/login-action@v4
+        run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v6
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push images with podman-compose
+        id: push
+        run: podman-compose -f infra/compose.yml build push
