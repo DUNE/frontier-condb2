@@ -49,4 +49,6 @@ jobs:
 
       - name: Build and push images with podman-compose
         id: push
-        run: podman-compose -f infra/compose.yml build push
+        run: |
+          podman-compose --verbose -f infra/compose.yml build --pull=true
+          podman-compose --verbose -f infra/compose.yml push
