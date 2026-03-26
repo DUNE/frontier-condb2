@@ -2,15 +2,12 @@ name: Build and Push Podman Images
 
 on:
   push:
-    branches:
-      # - main
-      - 18-containerize-frontier-condb2
+    # branches:
+    # - main
 
   pull_request:
 
 env:
-  # IMAGE_NAME: ${{ github.repository }}
-  ORGANIZATION: DUNE
   REGISTRY: ghcr.io
   SERVICES: "condb2-rest-api frontier-server"
 
@@ -50,16 +47,14 @@ jobs:
         shell: bash
         run: |
           podman-compose -f infra/compose.yml build --pull
-        # --podman-build-args "--tag ${{ env.REGISTRY }}/${{ github.repository }}:latest" \
 
       - name: Tag and push images to GHCR
         shell: bash
         run: |
           for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME="${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ github.repository }}:${SERVICE}-${{ github.ref_name }}"
+            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}:${SERVICE}-${{ github.sha }}" | tr '[:upper:]' '[:lower:]'`
             echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
             podman tag ${SERVICE} ${IMAGE_NAME}
             podman push ${IMAGE_NAME}
             podman rmi ${IMAGE_NAME}
           done
-        # podman-compose -f infra/compose.yml push
