@@ -1,4 +1,4 @@
-name: Build and Push Podman Images
+name: Build and Push Podman Images to GHCR
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       options: --privileged
 
     permissions:
-      contents: read
+      contents: write
       packages: write
       attestations: write
       id-token: write
@@ -35,7 +35,7 @@ jobs:
           dnf install epel-release -y
           dnf install podman podman-compose -y
 
-      - name: Log in to the Container Registry
+      - name: Log in to GHCR
         shell: bash
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | \
@@ -43,18 +43,30 @@ jobs:
             -u ${{ github.actor }} \
             --password-stdin
 
-      - name: Build images with podman-compose
+      - name: Update dune_con_prod.yml
         shell: bash
+        env:
+          API_SERVER_PASSWORD: ${{ secrets.API_SERVER_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
         run: |
-          podman-compose -f infra/compose.yml build --pull
+          sed -i "s/host: <REPLACE_ME>/host: ${{ env.DB_HOST }}/" infra/condb2_rest_api/dune_con_prod.yml
+          cat infra/condb2_rest_api/dune_con_prod.yml
 
-      - name: Tag and push images to GHCR
-        shell: bash
-        run: |
-          for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}:${SERVICE}-${{ github.sha }}" | tr '[:upper:]' '[:lower:]'`
-            echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
-            podman tag ${SERVICE} ${IMAGE_NAME}
-            podman push ${IMAGE_NAME}
-            podman rmi ${IMAGE_NAME}
-          done
+      # - name: Build images with podman-compose
+      #   shell: bash
+      #   run: podman-compose -f infra/compose.yml build --pull
+
+      # - name: Tag and push images to GHCR
+      #   shell: bash
+      #   run: |
+      #     for SERVICE in ${{ env.SERVICES }}; do
+      #       IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}:${SERVICE}_${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]'`
+      #       echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
+      #       podman tag ${SERVICE} ${IMAGE_NAME}
+      #       podman push ${IMAGE_NAME}
+      #       podman rmi ${IMAGE_NAME}
+      #     done
