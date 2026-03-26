@@ -29,6 +29,7 @@ RUN uv sync --locked --no-editable
 
 FROM almalinux:9-minimal
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+LABEL org.opencontainers.image.source=https://github.com/DUNE/frontier-condb2
 
 WORKDIR /app
 COPY --from=build /app/condb2/server ${WORKDIR}

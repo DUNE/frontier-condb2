@@ -9,8 +9,10 @@ on:
   pull_request:
 
 env:
+  # IMAGE_NAME: ${{ github.repository }}
+  ORGANIZATION: DUNE
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  SERVICES: "condb2-rest-api frontier-server"
 
 jobs:
   build-and-push-image:
@@ -33,29 +35,30 @@ jobs:
         shell: bash
         run: |
           dnf update -y
-          dnf install epel-release -y
-          dnf install -y podman podman-compose
-
-      # - name: Log in to the Container Registry
-      #   uses: docker/login-action@v4
-      #   with:
-      #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+          dnf install epel-release podman podman-compose -y
 
       - name: Log in to the Container Registry
         shell: bash
-        run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            podman login ${{ env.REGISTRY }} \
+            -u ${{ github.actor }} \
+            --password-stdin
 
-      # - name: Extract metadata (tags, labels) for Docker
-      #   id: meta
-      #   uses: docker/metadata-action@v6
-      #   with:
-      #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push images with podman-compose
-        id: push
+      - name: Build images with podman-compose
         shell: bash
         run: |
           podman-compose -f infra/compose.yml build --pull
-          podman-compose -f infra/compose.yml push
+        # --podman-build-args "--tag ${{ env.REGISTRY }}/${{ github.repository }}:latest" \
+
+      - name: Tag and push images to GHCR
+        shell: bash
+        run: |
+          for SERVICE in ${{ env.SERVICES }}; do
+            IMAGE_NAME="${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ github.repository }}:${SERVICE}-${{ github.sha }}"
+            echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
+            podman tag ${SERVICE} ${IMAGE_NAME}
+            podman push ${IMAGE_NAME}
+            podman rmi ${IMAGE_NAME}
+          done
+        # podman-compose -f infra/compose.yml push

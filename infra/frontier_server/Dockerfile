@@ -1,4 +1,5 @@
 FROM almalinux:9
+LABEL org.opencontainers.image.source=https://github.com/DUNE/frontier-condb2
 
 ARG FRONTIER_REL
 ARG FRONTIER_GROUP
