@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install podman and podman-compose
+        shell: bash
         run: |
           dnf update -y
           dnf install -y podman podman-compose
@@ -40,6 +41,7 @@ jobs:
       #     password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to the Container Registry
+        shell: bash
         run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
 
       # - name: Extract metadata (tags, labels) for Docker
@@ -50,6 +52,7 @@ jobs:
 
       - name: Build and push images with podman-compose
         id: push
+        shell: bash
         run: |
           podman-compose -f infra/compose.yml build --pull
           podman-compose -f infra/compose.yml push
