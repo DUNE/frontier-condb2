@@ -32,6 +32,7 @@ jobs:
       - name: Install podman and podman-compose
         shell: bash
         run: |
+          sudo mount -o remount,shared / /
           dnf update -y
           dnf install epel-release -y
           dnf install -y podman podman-compose
@@ -42,17 +43,20 @@ jobs:
       #     registry: ${{ env.REGISTRY }}
       #     username: ${{ github.actor }}
       #     password: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Log in to the Container Registry
-      #   shell: bash
-      #   run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+
+      - name: Log in to the Container Registry
+        shell: bash
+        run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+
       # - name: Extract metadata (tags, labels) for Docker
       #   id: meta
       #   uses: docker/metadata-action@v6
       #   with:
       #     images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
       - name: Build and push images with podman-compose
         id: push
         shell: bash
         run: |
           podman-compose -f infra/compose.yml build --pull
-        # podman-compose -f infra/compose.yml push
+          podman-compose -f infra/compose.yml push
