@@ -30,6 +30,7 @@ jobs:
       - name: Install podman and podman-compose
         shell: bash
         run: |
+          mount -o remount,shared / /
           dnf update -y
           dnf install epel-release -y
           dnf install -y podman podman-compose
