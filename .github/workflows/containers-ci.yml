@@ -15,6 +15,7 @@ env:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
+    container: almalinux:9
 
     permissions:
       contents: read
@@ -28,8 +29,8 @@ jobs:
 
       - name: Install podman and podman-compose
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y podman podman-compose
+          dnf update -y
+          dnf install -y podman podman-compose
 
       # - name: Log in to the Container Registry
       #   uses: docker/login-action@v4
@@ -50,5 +51,5 @@ jobs:
       - name: Build and push images with podman-compose
         id: push
         run: |
-          podman-compose -f infra/compose.yml --podman-build-args "--network host" build --pull
+          podman-compose -f infra/compose.yml build --pull
           podman-compose -f infra/compose.yml push
