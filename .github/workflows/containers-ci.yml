@@ -41,9 +41,9 @@ jobs:
       #     username: ${{ github.actor }}
       #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Log in to the Container Registry
-      #   shell: bash
-      #   run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
+      - name: Log in to the Container Registry
+        shell: bash
+        run: podman login -v -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ${{ env.REGISTRY }}
 
       # - name: Extract metadata (tags, labels) for Docker
       #   id: meta
@@ -55,5 +55,5 @@ jobs:
         id: push
         shell: bash
         run: |
-          podman-compose -f infra/compose.yml build --pull
+          podman-compose -f infra/compose.yml --podman-build-args "--security-opt seccomp=unconfined" build --pull
         # podman-compose -f infra/compose.yml push
