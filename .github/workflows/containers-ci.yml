@@ -35,7 +35,8 @@ jobs:
         shell: bash
         run: |
           dnf update -y
-          dnf install epel-release podman podman-compose -y
+          dnf install epel-release -y
+          dnf install podman podman-compose -y
 
       - name: Log in to the Container Registry
         shell: bash
@@ -55,7 +56,7 @@ jobs:
         shell: bash
         run: |
           for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME="${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ github.repository }}:${SERVICE}-${{ github.sha }}"
+            IMAGE_NAME="${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ github.repository }}:${SERVICE}-${{ github.ref_name }}"
             echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
             podman tag ${SERVICE} ${IMAGE_NAME}
             podman push ${IMAGE_NAME}
