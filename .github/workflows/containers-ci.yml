@@ -32,7 +32,7 @@ jobs:
         run: |
           dnf update -y
           dnf install epel-release -y
-          dnf install -y podman podman-compose
+          dnf install -y docker podman podman-compose
 
       - name: Log in to the Container Registry
         uses: docker/login-action@v4
