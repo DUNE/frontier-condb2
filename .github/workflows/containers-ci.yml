@@ -73,7 +73,7 @@ jobs:
         shell: bash
         run: |
           for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}:${SERVICE}_${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]'`
+            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${SERVICE}:${{ github.sha }}" | tr '[:upper:]' '[:lower:]'`
             echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
             podman tag ${SERVICE} ${IMAGE_NAME}
             podman push ${IMAGE_NAME}
