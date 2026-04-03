@@ -52,6 +52,7 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_USER: ${{ secrets.DB_USER }}
         run: |
+          cat infra/condb2_rest_api/dune_con_prod.yml
           sed -i "s/host: <REPLACE_ME>/host: ${{ env.DB_HOST }}/" \
             infra/condb2_rest_api/dune_con_prod.yml
           sed -i "s/name: <REPLACE_ME>/name: ${{ env.DB_NAME }}/" \
@@ -64,6 +65,7 @@ jobs:
             infra/condb2_rest_api/dune_con_prod.yml
           sed -i "s/api_server_password: <REPLACE_ME>/password: ${{ env.API_SERVER_PASSWORD }}/" \
             infra/condb2_rest_api/dune_con_prod.yml
+          cat infra/condb2_rest_api/dune_con_prod.yml
 
       - name: Build images with podman-compose
         run: podman-compose -f infra/compose.yml build --pull
