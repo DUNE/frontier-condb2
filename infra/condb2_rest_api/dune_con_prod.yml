@@ -3,10 +3,10 @@ Database:
   name: <REPLACE_ME>
   port: <REPLACE_ME>
   user: <REPLACE_ME>
-  password: <REPLACE_ME>
+  db_password: <REPLACE_ME>
 
 Server:
-  password: <REPLACE_ME>
+  api_server_password: <REPLACE_ME>
   cache_ttl: 7200
   tagged_cache_ttl: 31000000
 
