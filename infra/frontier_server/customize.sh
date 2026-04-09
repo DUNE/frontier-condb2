@@ -25,5 +25,10 @@ insertline("^http_access deny all", "http_access allow to_localhost")
 setoption("read_ahead_gap", "200 MB")
 setoption("shutdown_lifetime", "0 seconds")
 
+setoption("cache_log", "<APP_STORAGE>/logs/squid/cache.log")
+setoption("coredump_dir", "<APP_STORAGE>/cache/squid")
+setoptionparameter("cache_dir", 2, "<APP_STORAGE>/cache/squid")
+setoptionparameter("access_log", 1, "daemon:<APP_STORAGE>/logs/squid/access.log")
+
 print
 }'

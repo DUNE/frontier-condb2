@@ -1,6 +1,8 @@
 FROM almalinux:9 as build
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
+ARG CONDB2_SERVICE_PORT
+
 WORKDIR /app
 
 RUN <<EOF
@@ -17,6 +19,9 @@ WORKDIR /app/condb2/server/
 COPY ["dune_con_prod.yml", "pyproject.toml", "README.md", "uwsgi.ini", "${WORKDIR}"]
 
 RUN <<EOF
+    sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" uwsgi.ini
+    cat uwsgi.ini
+
     export PATH=/root/.local/bin:$PATH
     uv python install 3.12 --compile-bytecode
     uv sync --no-install-project --compile-bytecode --no-editable

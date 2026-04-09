@@ -1,23 +1,43 @@
 name: frontier-condb2
 
 services:
+  condb2-rest-api:
+    container_name: condb2-rest-api
+    image: condb2-rest-api
+    build:
+      context: ./condb2_rest_api
+      args:
+        APP_STORAGE: ${APP_STORAGE}
+        CONDB2_SERVICE_PORT: ${CONDB2_SERVICE_PORT}
+    env_file:
+      - ./compose.env
+    ports:
+      - "${CONDB2_SERVICE_PORT-8888}:8888"
+    volumes:
+      - app-storage:${APP_STORAGE}
+
   frontier-server:
     container_name: frontier-server
     image: frontier-server
     build:
       context: ./frontier_server
       args:
-        FRONTIER_REL: "https://frontier.cern.ch/dist/rpms/RPMS/noarch/frontier-release-1.3-1.noarch.rpm"
-        FRONTIER_GROUP: tomcat
-        FRONTIER_USER: tomcat
+        APP_STORAGE: ${APP_STORAGE}
+        CONDB2_SERVICE_PORT: ${CONDB2_SERVICE_PORT}
+        CONDB2_SERVICE_URL: ${CONDB2_SERVICE_URL}
+        FRONTIER_REL: ${FRONTIER_REL}
+    environment:
+      FRONTIER_GROUP: ${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
+      FRONTIER_USER: ${FRONTIER_USER:-tomcat} # default to 'tomcat'
+    env_file:
+      - ./compose.env
     ports:
-      - "8000:8000"
+      - "${FRONTIER_SERVICE_PORT-8000}:8000"
     depends_on:
       - condb2-rest-api
+    volumes:
+      - app-storage:${APP_STORAGE}
 
-  condb2-rest-api:
-    container_name: condb2-rest-api
-    image: condb2-rest-api
-    build: ./condb2_rest_api
-    ports:
-      - "8888:8888"
+volumes:
+  app-storage:
+    external: true
