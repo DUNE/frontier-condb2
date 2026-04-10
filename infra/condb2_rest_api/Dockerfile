@@ -15,14 +15,15 @@ RUN <<EOF
     cp -R /app/wsdbtools/wsdbtools /app/condb2/server/
 EOF
 
-WORKDIR /app/condb2/server/
+ENV APP_HOME=/app/condb2/server/
+WORKDIR ${APP_HOME}
 COPY ["dune_con_prod.yml", "pyproject.toml", "README.md", "uwsgi.ini", "${WORKDIR}"]
 
 RUN echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
 
 RUN <<EOF
-    sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" "${WORKDIR}/uwsgi.ini"
-    cat "${WORKDIR}/uwsgi.ini"
+    sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" "${APP_HOME}/uwsgi.ini"
+    cat "${APP_HOME}/uwsgi.ini"
     export PATH=/root/.local/bin:$PATH
     uv python install 3.12 --compile-bytecode
     uv sync --no-install-project --compile-bytecode --no-editable
