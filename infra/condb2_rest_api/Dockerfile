@@ -5,8 +5,6 @@ ARG CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
 
 WORKDIR /app
 
-RUN echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
-
 RUN <<EOF
     dnf update -y
     dnf install git -y
@@ -23,8 +21,8 @@ COPY ["dune_con_prod.yml", "pyproject.toml", "README.md", "uwsgi.ini", "${WORKDI
 RUN echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
 
 RUN <<EOF
-    sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" ${WORKDIR}/uwsgi.ini
-    cat ${WORKDIR}/uwsgi.ini
+    sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" "${WORKDIR}/uwsgi.ini"
+    cat "${WORKDIR}/uwsgi.ini"
     export PATH=/root/.local/bin:$PATH
     uv python install 3.12 --compile-bytecode
     uv sync --no-install-project --compile-bytecode --no-editable
