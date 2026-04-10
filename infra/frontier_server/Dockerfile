@@ -5,8 +5,8 @@ ARG APP_STORAGE
 ARG CONDB2_SERVICE_PORT
 ARG CONDB2_SERVICE_URL
 ARG FRONTIER_REL
-ENV FRONTIER_GROUP=${FRONTIER_GROUP}
-ENV FRONTIER_USER=${FRONTIER_USER}
+ARG FRONTIER_GROUP=${FRONTIER_GROUP}
+ARG FRONTIER_USER=${FRONTIER_USER}
 
 # Install and configure the Frontier "launchpad" server stack.
 RUN <<EOF
@@ -29,10 +29,12 @@ RUN <<EOF
     sed -i "s/<APP_STORAGE>/${APP_STORAGE}/" /etc/tomcat/tomcat.conf
     sed -i "s/FRONTIER_USER=<FRONTIER_USER>/FRONTIER_USER=${FRONTIER_USER}/" /etc/tomcat/tomcat.conf
     sed -i "s/FRONTIER_GROUP=<FRONTIER_GROUP>/FRONTIER_GROUP=${FRONTIER_GROUP}/" /etc/tomcat/tomcat.conf
+
     cat /etc/squid/customize.sh
     cat /etc/squid/squidconf
     cat /etc/tomcat/servlets.conf
     cat /etc/tomcat/tomcat.conf
+
     chmod a+x /etc/squid/customize.sh
     chown -R ${FRONTIER_USER}:${FRONTIER_GROUP} /etc/squid
     chown -R ${FRONTIER_USER}:${FRONTIER_GROUP} /etc/tomcat

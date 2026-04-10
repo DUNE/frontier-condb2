@@ -7,7 +7,6 @@ services:
     build:
       context: ./condb2_rest_api
       args:
-        # - APP_STORAGE=${APP_STORAGE}
         - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
     env_file:
       - .env
@@ -16,27 +15,27 @@ services:
     volumes:
       - app-storage:${APP_STORAGE}
 
-  # frontier-server:
-  #   container_name: frontier-server
-  #   image: frontier-server
-  #   build:
-  #     context: ./frontier_server
-  #     args:
-  #       - APP_STORAGE=${APP_STORAGE}
-  #       - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
-  #       - CONDB2_SERVICE_URL=${CONDB2_SERVICE_URL}
-  #       - FRONTIER_REL=${FRONTIER_REL}
-  #   environment:
-  #     - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
-  #     - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "${FRONTIER_SERVICE_PORT-8000}:8000"
-  #   depends_on:
-  #     - condb2-rest-api
-  #   volumes:
-  #     - app-storage:${APP_STORAGE}
+  frontier-server:
+    container_name: frontier-server
+    image: frontier-server
+    build:
+      context: ./frontier_server
+      args:
+        - APP_STORAGE=${APP_STORAGE}
+        - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+        - CONDB2_SERVICE_URL=${CONDB2_SERVICE_URL}
+        - FRONTIER_REL=${FRONTIER_REL}
+    environment:
+      - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
+      - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
+    env_file:
+      - .env
+    ports:
+      - "${FRONTIER_SERVICE_PORT-8000}:8000"
+    depends_on:
+      - condb2-rest-api
+    volumes:
+      - app-storage:${APP_STORAGE}
 
 volumes:
   app-storage:
