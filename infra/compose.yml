@@ -7,10 +7,10 @@ services:
     build:
       context: ./condb2_rest_api
     environment:
-      APP_STORAGE: ${APP_STORAGE}
-      CONDB2_SERVICE_PORT: ${CONDB2_SERVICE_PORT}
+      - APP_STORAGE=${APP_STORAGE}
+      - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
     env_file:
-      - ./compose.env
+      - .env
     ports:
       - "${CONDB2_SERVICE_PORT-8888}:8888"
     volumes:
@@ -22,15 +22,15 @@ services:
     build:
       context: ./frontier_server
       args:
-        APP_STORAGE: ${APP_STORAGE}
-        CONDB2_SERVICE_PORT: ${CONDB2_SERVICE_PORT}
-        CONDB2_SERVICE_URL: ${CONDB2_SERVICE_URL}
-        FRONTIER_REL: ${FRONTIER_REL}
+        - APP_STORAGE=${APP_STORAGE}
+        - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+        - CONDB2_SERVICE_URL=${CONDB2_SERVICE_URL}
+        - FRONTIER_REL=${FRONTIER_REL}
     environment:
-      FRONTIER_GROUP: ${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
-      FRONTIER_USER: ${FRONTIER_USER:-tomcat} # default to 'tomcat'
+      - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
+      - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
     env_file:
-      - ./compose.env
+      - .env
     ports:
       - "${FRONTIER_SERVICE_PORT-8000}:8000"
     depends_on:
