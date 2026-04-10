@@ -10,7 +10,7 @@ services:
         APP_STORAGE: ${APP_STORAGE}
         CONDB2_SERVICE_PORT: ${CONDB2_SERVICE_PORT}
     env_file:
-      - ./compose.env
+      - compose.env
     ports:
       - "${CONDB2_SERVICE_PORT-8888}:8888"
     volumes:
@@ -30,7 +30,7 @@ services:
       FRONTIER_GROUP: ${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
       FRONTIER_USER: ${FRONTIER_USER:-tomcat} # default to 'tomcat'
     env_file:
-      - ./compose.env
+      - compose.env
     ports:
       - "${FRONTIER_SERVICE_PORT-8000}:8000"
     depends_on:

@@ -1,7 +1,7 @@
 FROM almalinux:9 as build
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
-ARG CONDB2_SERVICE_PORT
+ARG CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
 
 WORKDIR /app
 
@@ -19,6 +19,7 @@ WORKDIR /app/condb2/server/
 COPY ["dune_con_prod.yml", "pyproject.toml", "README.md", "uwsgi.ini", "${WORKDIR}"]
 
 RUN <<EOF
+    echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
     sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" uwsgi.ini
     cat uwsgi.ini
 
