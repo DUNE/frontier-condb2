@@ -23,12 +23,12 @@ COPY frontier-squid /etc/sysconfig/
 COPY servlets.conf servlets.passwd tomcat.conf /etc/tomcat/
 
 RUN <<EOF
-    sed -i "s/<APP_STORAGE>/${APP_STORAGE}/" /etc/squid/customize.sh
+    sed -i "s+<APP_STORAGE>+${APP_STORAGE}+" /etc/squid/customize.sh
     sed -i "s/FRONTIER_USER=<FRONTIER_USER>/FRONTIER_USER=${FRONTIER_USER}/" /etc/squid/squidconf
     sed -i "s/FRONTIER_GROUP=<FRONTIER_GROUP>/FRONTIER_GROUP=${FRONTIER_GROUP}/" /etc/squid/squidconf
-    sed -i "s/<CONDB2_SERVICE_URL>:<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_URL}:${CONDB2_SERVICE_PORT}/" \
+    sed -i "s+<CONDB2_SERVICE_URL>:<CONDB2_SERVICE_PORT>+${CONDB2_SERVICE_URL}:${CONDB2_SERVICE_PORT}+" \
         /etc/tomcat/servlets.conf
-    sed -i "s/<APP_STORAGE>/${APP_STORAGE}/" /etc/tomcat/tomcat.conf
+    sed -i "s+<APP_STORAGE>+${APP_STORAGE}+" /etc/tomcat/tomcat.conf
     sed -i "s/FRONTIER_USER=<FRONTIER_USER>/FRONTIER_USER=${FRONTIER_USER}/" /etc/tomcat/tomcat.conf
     sed -i "s/FRONTIER_GROUP=<FRONTIER_GROUP>/FRONTIER_GROUP=${FRONTIER_GROUP}/" /etc/tomcat/tomcat.conf
 
