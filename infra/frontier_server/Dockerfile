@@ -12,6 +12,7 @@ ARG FRONTIER_USER=${FRONTIER_USER}
 RUN <<EOF
     export FRONTIER_GROUP=${FRONTIER_GROUP}
     export FRONTIER_USER=${FRONTIER_USER}
+    useradd -g ${FRONTIER_GROUP} ${FRONTIER_USER}
     dnf -y update
     rpm -Uvh --replacefiles ${FRONTIER_REL}
     dnf install -y initscripts chkconfig frontier-tomcat frontier-squid
