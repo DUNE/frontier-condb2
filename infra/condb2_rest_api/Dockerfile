@@ -5,6 +5,8 @@ ENV CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
 
 WORKDIR /app
 
+RUN echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
+
 RUN <<EOF
     dnf update -y
     dnf install git -y
@@ -18,8 +20,9 @@ EOF
 WORKDIR /app/condb2/server/
 COPY ["dune_con_prod.yml", "pyproject.toml", "README.md", "uwsgi.ini", "${WORKDIR}"]
 
+RUN echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
+
 RUN <<EOF
-    echo "CONDB2_SERVICE_PORT = ${CONDB2_SERVICE_PORT}"
     sed -i "s/<CONDB2_SERVICE_PORT>/${CONDB2_SERVICE_PORT}/" ${WORKDIR}/uwsgi.ini
     cat ${WORKDIR}/uwsgi.ini
     export PATH=/root/.local/bin:$PATH
