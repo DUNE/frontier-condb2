@@ -12,6 +12,7 @@ ARG FRONTIER_USER=${FRONTIER_USER}
 RUN <<EOF
     export FRONTIER_GROUP=${FRONTIER_GROUP}
     export FRONTIER_USER=${FRONTIER_USER}
+    groupadd ${FRONTIER_GROUP}
     useradd -g ${FRONTIER_GROUP} ${FRONTIER_USER}
     dnf -y update
     rpm -Uvh --replacefiles ${FRONTIER_REL}
