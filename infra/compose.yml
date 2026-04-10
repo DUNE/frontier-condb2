@@ -25,9 +25,8 @@ services:
         - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
         - CONDB2_SERVICE_URL=${CONDB2_SERVICE_URL}
         - FRONTIER_REL=${FRONTIER_REL}
-    environment:
-      - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
-      - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
+        - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
+        - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
     env_file:
       - .env
     ports:

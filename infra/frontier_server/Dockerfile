@@ -1,15 +1,17 @@
 FROM almalinux:9
 LABEL org.opencontainers.image.source=https://github.com/DUNE/frontier-condb2
 
-ARG APP_STORAGE
-ARG CONDB2_SERVICE_PORT
-ARG CONDB2_SERVICE_URL
-ARG FRONTIER_REL
+ARG APP_STORAGE=${APP_STORAGE}
+ARG CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+ARG CONDB2_SERVICE_URL=${CONDB2_SERVICE_URL}
+ARG FRONTIER_REL=${FRONTIER_REL}
 ARG FRONTIER_GROUP=${FRONTIER_GROUP}
 ARG FRONTIER_USER=${FRONTIER_USER}
 
 # Install and configure the Frontier "launchpad" server stack.
 RUN <<EOF
+    export FRONTIER_GROUP=${FRONTIER_GROUP}
+    export FRONTIER_USER=${FRONTIER_USER}
     dnf -y update
     rpm -Uvh --replacefiles ${FRONTIER_REL}
     dnf install -y initscripts chkconfig frontier-tomcat frontier-squid
@@ -30,10 +32,10 @@ RUN <<EOF
     sed -i "s/FRONTIER_USER=<FRONTIER_USER>/FRONTIER_USER=${FRONTIER_USER}/" /etc/tomcat/tomcat.conf
     sed -i "s/FRONTIER_GROUP=<FRONTIER_GROUP>/FRONTIER_GROUP=${FRONTIER_GROUP}/" /etc/tomcat/tomcat.conf
 
-    cat /etc/squid/customize.sh
-    cat /etc/squid/squidconf
-    cat /etc/tomcat/servlets.conf
-    cat /etc/tomcat/tomcat.conf
+    awk 1 /etc/squid/customize.sh
+    awk 1 /etc/squid/squidconf
+    awk 1 /etc/tomcat/servlets.conf
+    awk 1 /etc/tomcat/tomcat.conf
 
     chmod a+x /etc/squid/customize.sh
     chown -R ${FRONTIER_USER}:${FRONTIER_GROUP} /etc/squid
