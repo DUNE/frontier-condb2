@@ -1,7 +1,7 @@
 FROM almalinux:9 as build
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
-ENV CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+ARG CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
 
 WORKDIR /app
 

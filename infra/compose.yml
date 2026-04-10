@@ -6,9 +6,9 @@ services:
     image: condb2-rest-api
     build:
       context: ./condb2_rest_api
-    environment:
-      # - APP_STORAGE=${APP_STORAGE}
-      - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+      args:
+        # - APP_STORAGE=${APP_STORAGE}
+        - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
     env_file:
       - .env
     ports:
