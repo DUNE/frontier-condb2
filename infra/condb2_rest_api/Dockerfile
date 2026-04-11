@@ -2,8 +2,8 @@ FROM almalinux:9 as build
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
 ARG CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
-ENV APP_HOME=/app
-ENV SERVER_HOME=${APP_HOME}/condb2/server/
+ARG APP_HOME=/app
+ARG SERVER_HOME=${APP_HOME}/condb2/server/
 
 WORKDIR ${APP_HOME}
 
@@ -36,8 +36,10 @@ FROM almalinux:9-minimal
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 LABEL org.opencontainers.image.source=https://github.com/DUNE/frontier-condb2
 
-ENV APP_HOME=/app
-ENV SERVER_HOME=${APP_HOME}/condb2/server/
+ARG APP_HOME=/app
+ARG SERVER_HOME=${APP_HOME}/condb2/server/
+ENV CON_DB_CFG=${APP_HOME}/dune_con_prod.yml
+ENV JINJA_TEMPLATES_LOCATION=${APP_HOME}
 
 WORKDIR ${APP_HOME}
 COPY --from=build ${SERVER_HOME} ${WORKDIR}
@@ -46,8 +48,5 @@ RUN <<EOF
     export PATH=/root/.local/bin:$PATH
     uv python install 3.12 --compile-bytecode
 EOF
-
-ENV CON_DB_CFG=${APP_HOME}/dune_con_prod.yml
-ENV JINJA_TEMPLATES_LOCATION=${APP_HOME}
 
 CMD ["${APP_HOME}/.venv/bin/uwsgi", "uwsgi.ini"]
