@@ -49,4 +49,4 @@ RUN <<EOF
     uv python install 3.12 --compile-bytecode
 EOF
 
-CMD ["${APP_HOME}/.venv/bin/uwsgi", "uwsgi.ini"]
+CMD ["/app/.venv/bin/uwsgi", "uwsgi.ini"]
