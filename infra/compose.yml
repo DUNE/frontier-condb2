@@ -7,7 +7,6 @@ services:
   condb2-rest-api:
     container_name: condb2-rest-api
     image: condb2-rest-api
-    userns_mode: "keep-id"
     build:
       context: ./condb2_rest_api
       args:
@@ -21,6 +20,10 @@ services:
       - "${CONDB2_SERVICE_PORT-8888}:8888"
     volumes:
       - ${APP_STORAGE}:${APP_STORAGE}:z
+    x-podman.uidmaps:
+      - "0:1:999"
+      - "1000:0:1"
+      - "1001:1001:64536"
 
   frontier-server:
     container_name: frontier-server
