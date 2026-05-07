@@ -1,19 +1,26 @@
 name: frontier-condb2
 
+x-podman:
+  in_pod: false
+
 services:
   condb2-rest-api:
     container_name: condb2-rest-api
     image: condb2-rest-api
+    userns_mode: "keep-id"
     build:
       context: ./condb2_rest_api
       args:
+        - APP_STORAGE=${APP_STORAGE}
         - CONDB2_SERVICE_PORT=${CONDB2_SERVICE_PORT}
+        - FRONTIER_GROUP=${FRONTIER_GROUP:-tomcat} # default to 'tomcat'
+        - FRONTIER_USER=${FRONTIER_USER:-tomcat} # default to 'tomcat'
     env_file:
       - .env
     ports:
       - "${CONDB2_SERVICE_PORT-8888}:8888"
     volumes:
-      - app-storage:${APP_STORAGE}
+      - ${APP_STORAGE}:${APP_STORAGE}:z
 
   frontier-server:
     container_name: frontier-server
@@ -34,8 +41,8 @@ services:
     depends_on:
       - condb2-rest-api
     volumes:
-      - app-storage:${APP_STORAGE}
-
-volumes:
-  app-storage:
-    external: true
+      - ${APP_STORAGE}:${APP_STORAGE}:z
+    x-podman.uidmaps:
+      - "0:1:999"
+      - "1000:0:1"
+      - "1001:1001:64536"
