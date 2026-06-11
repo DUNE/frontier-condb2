@@ -10,7 +10,8 @@ CONDB2_SERVER_URL = "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod"
 FN_FILEGET_PATH = "./clients/frontier/client/fn-fileget"
 FRONTIER_CLIENT_LD_LIBRARY_PATH = "/home/mike/dev/frontier/client"
 FRONTIER_PROXY_URL = "http://localhost:3128"
-FRONTIER_SERVER_URL = "http://fermicloud725.fnal.gov:8000/dune_runcon_prod"
+# FRONTIER_SERVER_URL = "http://fermicloud725.fnal.gov:8000/dune_runcon_prod"
+FRONTIER_SERVER_URL = "http://dunefrontier.fnal.gov:8000/dune_runcon_prod"
 
 
 class SubprocessClient:
@@ -116,7 +117,6 @@ class ConditionsDataUser(SubProcessUser):
     # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.gain&t=0"
     # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.elifetime&t=0"
     # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.vdrift&t=0"
-
     # self.client.pd_2x2_fnfileget_query(
     #     f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=neardet2x2.gain&t=0'",
     # )

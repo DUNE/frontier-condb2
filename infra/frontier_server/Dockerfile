@@ -41,7 +41,8 @@ RUN <<EOF
 
     dnf -y update
     rpm -Uvh --replacefiles ${FRONTIER_REL}
-    dnf install -y initscripts chkconfig frontier-tomcat frontier-squid sudo
+    dnf install -y initscripts chkconfig frontier-squid sudo
+    dnf install --enablerepo=cern-frontier-debug -y frontier-tomcat
     dnf clean all
 
     chown -R ${FRONTIER_USER}:${FRONTIER_GROUP} /etc/squid
