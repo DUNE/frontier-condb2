@@ -1,0 +1,81 @@
+name: Build and Push Podman Images to GHCR
+
+on:
+  push:
+    # branches:
+    # - main
+
+  pull_request:
+
+env:
+  REGISTRY: ghcr.io
+  SERVICES: "condb2-rest-api frontier-server"
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    container:
+      image: almalinux:9
+      options: --privileged
+
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install podman and podman-compose
+        run: |
+          dnf update -y
+          dnf install epel-release -y
+          dnf install podman podman-compose -y
+
+      - name: Log in to GHCR
+        shell: bash
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            podman login ${{ env.REGISTRY }} \
+            -u ${{ github.actor }} \
+            --password-stdin
+
+      - name: Update dune_runcon_prod.yaml
+        shell: bash
+        env:
+          API_SERVER_PASSWORD: ${{ secrets.API_SERVER_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+        run: |
+          sed -i "s+host: <REPLACE_ME>+host: ${{ env.DB_HOST }}+" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+          sed -i "s/name: <REPLACE_ME>/name: ${{ env.DB_NAME }}/" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+          sed -i "s/port: <REPLACE_ME>/port: ${{ env.DB_PORT }}/" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+          sed -i "s/user: <REPLACE_ME>/user: ${{ env.DB_USER }}/" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+          sed -i "s/db_password: <REPLACE_ME>/password: ${{ env.DB_PASSWORD }}/" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+          sed -i "s/api_server_password: <REPLACE_ME>/password: ${{ env.API_SERVER_PASSWORD }}/" \
+            infra/condb2_rest_api/dune_runcon_prod.yaml
+
+      - name: Build images with podman-compose
+        run: podman-compose -f ./infra/compose.yml --env-file ./infra/.env build
+          --no-cache --pull
+
+      - name: Tag and push images to GHCR
+        shell: bash
+        run: |
+          for SERVICE in ${{ env.SERVICES }}; do
+            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+            echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
+            podman tag ${SERVICE} ${IMAGE_NAME}
+            podman push ${IMAGE_NAME}
+            podman rmi ${IMAGE_NAME}
+          done

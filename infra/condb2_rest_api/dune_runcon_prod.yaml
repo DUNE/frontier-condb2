@@ -1,0 +1,14 @@
+Database:
+  host: <REPLACE_ME>
+  name: <REPLACE_ME>
+  port: <REPLACE_ME>
+  user: <REPLACE_ME>
+  db_password: <REPLACE_ME>
+
+Server:
+  api_server_password: <REPLACE_ME>
+  cache_ttl: 7200
+  tagged_cache_ttl: 31000000
+
+GUI:
+  title: DUNE Conditions Database

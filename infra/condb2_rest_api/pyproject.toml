@@ -1,0 +1,18 @@
+[project]
+name = "condb2-rest-api"
+version = "0.1.0"
+description = "ConDB2 REST API"
+readme = "README.md"
+authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fnal-wda-condb2",
+    "jinja2",
+    "pyyaml",
+    "requests",
+    "uwsgi",
+    "webpie",
+]
+
+[tool.uv.sources]
+fnal-wda-condb2 = { git = "https://github.com/fermisda/condb2.git" }

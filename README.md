@@ -1,4 +1,5 @@
-# frontier-condb2-test
+# Frontier / ConDB2 API Integration
+
 This repository contains the code and documentation related to the installation, configuration, and testing of a Frontier (server, client, cache) connection to a ConDB2 API server backend.
 
 ## FermiCloud Instance Setup
