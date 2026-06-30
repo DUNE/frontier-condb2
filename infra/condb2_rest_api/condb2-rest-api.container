@@ -1,0 +1,18 @@
+# ~/.config/containers/systemd/condb2-rest-api.container
+
+[Unit]
+Description=ConDB2 REST API
+
+[Container]
+ContainerName=condb2-rest-api
+Image=condb2-rest-api
+Environment=APP_STORAGE=/storage/local/data1/frontier
+Environment=CONDB2_SERVICE_PORT=8888
+PublishPort=${CONDB2_SERVICE_PORT}:${CONDB2_SERVICE_PORT}
+Volume=${APP_STORAGE}
+UIDMap=0:1:999
+UIDMap=1000:0:1
+UIDMap=1001:1001:64536
+
+[Install]
+WantedBy=default.target

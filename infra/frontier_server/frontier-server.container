@@ -1,0 +1,20 @@
+# ~/.config/containers/systemd/web.container
+
+[Unit]
+Description=Frontier Server
+After=condb2-rest-api.service
+Requires=condb2-rest-api.service
+
+[Container]
+ContainerName=frontier-server
+Image=frontier-server
+Environment=APP_STORAGE=/storage/local/data1/frontier
+Environment=FRONTIER_SERVICE_PORT=8000
+PublishPort=${FRONTIER_SERVICE_PORT}:${FRONTIER_SERVICE_PORT}
+Volume=${APP_STORAGE}
+UIDMap=0:1:999
+UIDMap=1000:0:1
+UIDMap=1001:1001:64536
+
+[Install]
+WantedBy=default.target
