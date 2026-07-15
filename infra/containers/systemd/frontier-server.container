@@ -1,7 +1,7 @@
 [Unit]
 Description=Frontier
-After=condb2.service
-Requires=condb2.service
+After=condb2-rest-api.service
+Requires=condb2-rest-api.service
 
 [Container]
 ContainerName=frontier-server
