@@ -3,7 +3,8 @@ Description=ConDB2 REST API
 
 [Container]
 ContainerName=condb2-rest-api
-Image=condb2-rest-api
+Image=ghcr.io/dune/frontier-condb2/condb2-rest-api:latest
+AutoUpdate=registry
 CgroupsMode=no-conmon
 Network=frontier-condb2.network
 Environment=APP_STORAGE=/storage/local/data1/frontier
@@ -13,6 +14,11 @@ Volume=/storage/local/data1/frontier:/storage/local/data1/frontier:z
 UIDMap=0:1:999
 UIDMap=1000:0:1
 UIDMap=1001:1001:64536
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=180
 
 [Install]
 WantedBy=default.target
