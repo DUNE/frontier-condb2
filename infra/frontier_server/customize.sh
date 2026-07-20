@@ -14,8 +14,8 @@ HOSTNAME=`hostname`
 
 awk --file `dirname $0`/customhelps.awk --source '{
 setoption("acl NET_LOCAL src", "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10")
-setoption("cache_mem", "128 MB")
-setoptionparameter("cache_dir", 3, "10000")
+setoption("cache_mem", "1024 MB")
+setoptionparameter("cache_dir", 3, "100000")
 
 setoption("http_port", "8000 accel defaultsite=127.0.0.1:8080 no-vhost")
 setoption("cache_peer", "127.0.0.1 parent 8080 0 no-query originserver name=tomcat")

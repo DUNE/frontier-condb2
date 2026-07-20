@@ -2,8 +2,8 @@ name: Build and Push Podman Images to GHCR
 
 on:
   push:
-    # branches:
-    # - main
+    branches:
+    - main
 
   pull_request:
 
