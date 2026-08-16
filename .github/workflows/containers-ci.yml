@@ -25,7 +25,7 @@ on:
 #   SERVICES: "condb2-rest-api frontier-server"
 
 jobs:
-  build-and-push-image:
+  build-images:
     runs-on: ubuntu-latest
     container:
       image: almalinux:9

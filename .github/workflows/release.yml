@@ -10,8 +10,8 @@ on:
 permissions:
   contents: write
   packages: write
-  # attestations: write
-  # id-token: write
+  attestations: write
+  id-token: write
 
 env:
   REGISTRY: ghcr.io
