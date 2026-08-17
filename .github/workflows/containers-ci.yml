@@ -4,21 +4,6 @@ on:
   # pull_request:
   # push:
   workflow_call:
-    # secrets:
-    #   api-server-password:
-    #     required: true
-    #   db-host:
-    #     required: true
-    #   db-name:
-    #     required: true
-    #   db-password:
-    #     required: true
-    #   db-port:
-    #     required: true
-    #   db-user:
-    #     required: true
-    #   github-token:
-    #     required: true
 
 env:
   REGISTRY: ghcr.io
