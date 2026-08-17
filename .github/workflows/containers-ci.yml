@@ -77,3 +77,9 @@ jobs:
             podman push ${IMAGE_NAME}
             podman rmi ${IMAGE_NAME}
           done
+
+      - name: Archive Quadlet artifacts & systemd unit files
+        uses: actions/upload-artifact@v7
+        with:
+          name: quadlet-artifacts
+          path: infra/containers/

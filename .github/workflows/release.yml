@@ -14,15 +14,6 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-push-images:
+  build-and-upload-container-artifacts:
     uses: ./.github/workflows/containers-ci.yml
     secrets: inherit
-
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Archive Quadlet artifacts & systemd unit files
-        uses: actions/upload-artifact@v7
-        with:
-          name: quadlet-artifacts
-          path: ./infra/containers/
