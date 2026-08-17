@@ -22,10 +22,15 @@ jobs:
     needs: build-and-upload-container-artifacts
     runs-on: ubuntu-latest
     steps:
+      - name: Create server-dist directory
+        run: mkdir -p server-dist
+
       - name: Download Quadlet artifacts
         uses: actions/download-artifact@v8
         with:
           name: quadlet-artifacts
+          path: server-dist/
+          skip-decompress: true
 
       - name: Create server release
         env:
@@ -36,3 +41,4 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="${tag#v}" \
               --generate-notes
+              ./server-dist/*.zip
