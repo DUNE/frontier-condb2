@@ -38,7 +38,6 @@ jobs:
           tag: ${{ github.ref_name }}
         run: |
           gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
-              --title="${tag#v}" \
-              --generate-notes
-              ./server-dist/*.zip
+            ./server-dist/*.zip \
+            --title="${tag#v}" \
+            --generate-notes
