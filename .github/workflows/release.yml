@@ -17,3 +17,15 @@ jobs:
   build-and-upload-container-artifacts:
     uses: ./.github/workflows/containers-ci.yml
     secrets: inherit
+
+  server-release:
+    needs: build-and-upload-container-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Quadlet artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: quadlet-artifacts
+
+      - name: Create server release
+        uses: softprops/action-gh-release@v3
