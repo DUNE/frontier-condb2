@@ -39,5 +39,6 @@ jobs:
         run: |
           gh release create "$tag" \
             ./server-dist/*.zip \
+            --repo="$GITHUB_REPOSITORY" \
             --title="${tag#v}" \
             --generate-notes
