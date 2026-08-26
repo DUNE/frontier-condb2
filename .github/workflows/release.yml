@@ -41,4 +41,4 @@ jobs:
             ./server-dist/*.zip \
             --repo="$GITHUB_REPOSITORY" \
             --title="${TAG#v}" \
-            --notes-from-tag
+            --generate-notes
