@@ -71,15 +71,15 @@ jobs:
         shell: bash
         run: |
           for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
-            echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
-            podman tag ${SERVICE} ${IMAGE_NAME}
-            podman push ${IMAGE_NAME}
-            podman rmi ${IMAGE_NAME}
+            TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+            echo "Tagging and pushing ${SERVICE} as ${TARGET_NAME}"
+            podman tag ${SERVICE} ${TARGET_NAME} ${TARGET_NAME}:${{ github.ref_name }}
+            podman push ${TARGET_NAME}
+            podman rmi ${TARGET_NAME}
           done
 
       - name: Archive Quadlet artifacts & systemd unit files
         uses: actions/upload-artifact@v7
         with:
-          name: quadlet-artifacts
+          name: quadlet-artifacts-${{ github.ref_name }}
           path: infra/containers/

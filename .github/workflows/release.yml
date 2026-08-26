@@ -5,7 +5,7 @@ on:
     # branches:
     #   - main
     # tags:
-    #   - "v*" # Trigger on tags like v0.1.0, v2.2.3, etc.
+    #   - "v*" # Trigger on semver tags like v0.1.0, v2.2.3, etc.
 
 permissions:
   contents: write
@@ -28,17 +28,19 @@ jobs:
       - name: Download Quadlet artifacts
         uses: actions/download-artifact@v8
         with:
-          name: quadlet-artifacts
+          name: quadlet-artifacts-${{ github.ref_name }}
           path: server-dist/
           skip-decompress: true
 
       - name: Create server release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}
+          # Short branch or tag name that triggered the workflow run.
+          # Releases
+          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$tag" \
+          gh release create "$TAG" \
             ./server-dist/*.zip \
             --repo="$GITHUB_REPOSITORY" \
-            --title="${tag#v}" \
+            --title="${TAG#v}" \
             --generate-notes
