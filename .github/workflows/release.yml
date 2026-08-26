@@ -35,12 +35,11 @@ jobs:
       - name: Create server release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Short branch or tag name that triggered the workflow run.
-          # Releases
           TAG: ${{ github.ref_name }}
         run: |
           gh release create "$TAG" \
             ./server-dist/*.zip \
             --repo="$GITHUB_REPOSITORY" \
             --title="${TAG#v}" \
+            --fail-on-no-commits
             --generate-notes

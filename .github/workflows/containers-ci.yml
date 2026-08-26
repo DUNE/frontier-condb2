@@ -73,7 +73,7 @@ jobs:
           for SERVICE in ${{ env.SERVICES }}; do
             TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
             echo "Tagging and pushing ${SERVICE} as ${TARGET_NAME}"
-            podman tag ${SERVICE} ${TARGET_NAME} ${TARGET_NAME}:${{ github.ref_name }}
+            podman tag ${SERVICE} "${TARGET_NAME}:latest" "${TARGET_NAME}:${{ github.ref_name }}"
             podman push ${TARGET_NAME}
             podman rmi ${TARGET_NAME}
           done
