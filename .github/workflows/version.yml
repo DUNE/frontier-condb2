@@ -40,6 +40,8 @@ jobs:
 
         run: |
           git config --global --add safe.directory $PWD
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}"
           git tag -a "v${{ steps.release-version.outputs.version }}" \
             -m "Release v${{ steps.release-version.outputs.version }}"
           git push --tags
