@@ -2,8 +2,9 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*" # Trigger on semver tags like v0.1.0, v2.2.3, etc.
+    branches:
+      # - main
+      - 32-cicd-quadlet-artifact-release
 
 permissions:
   contents: write
@@ -12,7 +13,38 @@ permissions:
   id-token: write
 
 jobs:
+  read-and-tag-release-version:
+    runs-on: ubuntu-latest
+    container:
+      image: almalinux:9
+
+    steps:
+      - name: Install git
+        run: |
+          dnf update -y
+          dnf install git -y
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Read VERSION file
+        id: release-version
+        run: echo "release_version=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Tag release version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        run: |
+          git config --global --add safe.directory $PWD
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}"
+          git tag -a "v$release_version" \
+            -m "Release v$release_version"
+          git push origin "v$release_version"
+
   build-and-upload-container-artifacts:
+    needs: read-and-tag-release-version
     uses: ./.github/workflows/containers.yml
     secrets: inherit
 
@@ -33,7 +65,7 @@ jobs:
       - name: Create server release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
+          TAG: "v$release_version"
         run: |
           gh release create "$TAG" \
             ./server-dist/*.zip \

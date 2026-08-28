@@ -3,8 +3,8 @@ name: Tag the release version on merges to the indicated branch.
 on:
   push:
     branches:
-      # - main
-      - 32-cicd-quadlet-artifact-release
+      - main
+      # - 32-cicd-quadlet-artifact-release
 
 jobs:
   read-and-tag-release-version:
@@ -44,4 +44,4 @@ jobs:
           git config user.email "${{ github.actor }}"
           git tag -a "v${{ steps.release-version.outputs.version }}" \
             -m "Release v${{ steps.release-version.outputs.version }}"
-          git push --tags
+          git push origin "v${{ steps.release-version.outputs.version }}"

@@ -7,18 +7,18 @@ env:
   REGISTRY: ghcr.io
   SERVICES: "condb2-rest-api frontier-server"
 
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
 jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
     container:
       image: almalinux:9
       options: --privileged
-
-    permissions:
-      contents: write
-      packages: write
-      attestations: write
-      id-token: write
 
     steps:
       - name: Checkout repository
