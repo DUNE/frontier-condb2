@@ -1,0 +1,39 @@
+name: Tag the release version on merges to the `main` branch.
+
+on:
+  push:
+    branches:
+      # - main
+      - 32-cicd-quadlet-artifact-release
+
+jobs:
+  build-and-push-images:
+    runs-on: ubuntu-latest
+    container:
+      image: almalinux:9
+
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            VERSION
+
+      - name: Read VERSION file
+        id: release-version
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Create server release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        run: |
+          git tag -a "${{ steps.release-version.outputs.version }}" \
+            -m "Release ${{ steps.release-version.outputs.version }}"
+          git push --tags

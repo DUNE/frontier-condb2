@@ -1,8 +1,6 @@
 name: Build and Push Podman Images to GHCR
 
 on:
-  # pull_request:
-  # push:
   workflow_call:
 
 env:
@@ -73,7 +71,8 @@ jobs:
           for SERVICE in ${{ env.SERVICES }}; do
             TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
             echo "Tagging and pushing ${SERVICE} as ${TARGET_NAME}"
-            podman tag "${SERVICE}:latest" "${TARGET_NAME}:latest" "${TARGET_NAME}:${{ github.ref_name }}"
+            podman tag "${SERVICE}:latest" "${TARGET_NAME}:${{ github.ref_name }}"
+            podman images
             podman push ${TARGET_NAME}
             podman rmi ${TARGET_NAME}
           done
