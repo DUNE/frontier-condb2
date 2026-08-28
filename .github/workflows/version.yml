@@ -39,6 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         run: |
-          git tag -a "${{ steps.release-version.outputs.version }}" \
-            -m "Release ${{ steps.release-version.outputs.version }}"
+          git config --global --add safe.directory $PWD
+          git tag -a "v${{ steps.release-version.outputs.version }}" \
+            -m "Release v${{ steps.release-version.outputs.version }}"
           git push --tags
