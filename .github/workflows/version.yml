@@ -3,7 +3,7 @@ name: Tag the release version on merges to the indicated branch.
 on:
   push:
     branches:
-      - main
+      # - main
       - 32-cicd-quadlet-artifact-release
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
       - name: Install git
         run: |
           dnf update -y
-          dnf install git
+          dnf install git -y
 
       - name: Checkout repository
         uses: actions/checkout@v6
