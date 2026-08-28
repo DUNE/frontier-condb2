@@ -76,8 +76,8 @@ jobs:
             TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
             echo "Tagging and pushing ${SERVICE}:latest as ${TARGET_NAME}:v${{ inputs.release-version }}"
             podman tag "${SERVICE}:latest" "${TARGET_NAME}:v${{ inputs.release-version }}"
-            podman push ${TARGET_NAME}
-            podman rmi ${TARGET_NAME}
+            podman push "${TARGET_NAME}:v${{ inputs.release-version }}"
+            podman rmi "${TARGET_NAME}:v${{ inputs.release-version }}"
           done
 
       - name: Archive Quadlet artifacts & systemd unit files

@@ -15,6 +15,8 @@ permissions:
 jobs:
   read-release-version:
     runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.release-version.outputs.release_version }}
 
     steps:
       - name: Checkout repository
@@ -25,13 +27,15 @@ jobs:
 
       - name: Read VERSION file
         id: release-version
-        run: echo "RELEASE_VERSION=$(cat VERSION)" >> $GITHUB_ENV
+        run: |
+          echo "release_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=$(cat VERSION)" >> $GITHUB_ENV
 
   build-and-upload-container-artifacts:
     needs: read-release-version
     uses: ./.github/workflows/server.yml
     with:
-      release-version: "${{ github.env.RELEASE_VERSION }}"
+      release-version: "${{ needs.read-release-version.outputs.release-version }}"
     secrets: inherit
 
   server-release:
@@ -52,7 +56,6 @@ jobs:
       - name: Create server release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # TAG: "v$RELEASE_VERSION"
         run: |
           gh release create "$TAG" \
             ./server-dist/*.zip \
@@ -80,11 +83,3 @@ jobs:
           git tag -a "v$RELEASE_VERSION" \
             -m "Release v$RELEASE_VERSION"
           git push origin "v$RELEASE_VERSION"
-
-      # run: |
-      #   git config --global --add safe.directory $PWD
-      #   git config user.name "${{ github.actor }}"
-      #   git config user.email "${{ github.actor }}"
-      #   git tag -a "v$RELEASE_VERSION" \
-      #     -m "Release v$RELEASE_VERSION"
-      #   git push origin "v$RELEASE_VERSION"
