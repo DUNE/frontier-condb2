@@ -3,8 +3,7 @@ name: Release
 on:
   push:
     branches:
-      # - main
-      - 32-cicd-quadlet-artifact-release
+      - main
 
 permissions:
   contents: write
@@ -63,23 +62,3 @@ jobs:
             --target="${{ github.ref_name }}" \
             --title="v${{ needs.read-release-version.outputs.release-version }}" \
             --generate-notes
-
-  # tag-release-version:
-  #   needs:
-  #     - server-release
-  #     - read-release-version
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v6
-
-  #     - name: Tag release version
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       run: |
-  #         git config user.email ${{ github.actor }}
-  #         git config user.name ${{ github.actor }}
-  #         git tag -a "v${{ needs.read-release-version.outputs.release-version }}" \
-  #           -m "Release v${{ needs.read-release-version.outputs.release-version }}"
-  #         git push origin "v${{ needs.read-release-version.outputs.release-version }}"
