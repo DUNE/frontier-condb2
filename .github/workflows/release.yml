@@ -60,7 +60,7 @@ jobs:
           gh release create "v${{ needs.read-release-version.outputs.release-version }}" \
             ./server-dist/*.zip \
             --repo="$GITHUB_REPOSITORY" \
-            --target="${{ github.ref_name }}"
+            --target="${{ github.ref_name }}" \
             --title="v${{ needs.read-release-version.outputs.release-version }}" \
             --generate-notes
 
