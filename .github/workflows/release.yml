@@ -57,10 +57,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$TAG" \
+          gh release create "v$TAG" \
             ./server-dist/*.zip \
             --repo="$GITHUB_REPOSITORY" \
-            --title="${{ needs.read-release-version.outputs.release-version }}" \
+            --title="v${{ needs.read-release-version.outputs.release-version }}" \
             --generate-notes
 
   tag-release-version:
