@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+jobs:
+  read-release-version:
+    runs-on: ubuntu-latest
+    outputs:
+      release-version: ${{ steps.release-version.outputs.release_version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            VERSION
+
+      - name: Read VERSION file
+        id: release-version
+        run: echo "release_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+  build-and-upload-container-artifacts:
+    needs: read-release-version
+    uses: ./.github/workflows/server.yml
+    with:
+      release-version: "${{ needs.read-release-version.outputs.release-version }}"
+    secrets: inherit
+
+  release:
+    needs:
+      - read-release-version
+      - build-and-upload-container-artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create server-dist directory
+        run: mkdir -p server-dist
+
+      - name: Download Quadlet artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: "quadlet-artifacts-v${{ needs.read-release-version.outputs.release-version }}"
+          path: server-dist/
+          skip-decompress: true
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ needs.read-release-version.outputs.release-version }}" \
+            ./server-dist/*.zip \
+            --repo="$GITHUB_REPOSITORY" \
+            --target="${{ github.ref_name }}" \
+            --title="v${{ needs.read-release-version.outputs.release-version }}" \
+            --generate-notes

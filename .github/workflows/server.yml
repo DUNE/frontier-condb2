@@ -1,28 +1,28 @@
 name: Build and Push Podman Images to GHCR
 
 on:
-  push:
-    branches:
-    - main
-
-  pull_request:
+  workflow_call:
+    inputs:
+      release-version:
+        required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
   SERVICES: "condb2-rest-api frontier-server"
 
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
 jobs:
-  build-and-push-image:
+  build-and-push-images:
     runs-on: ubuntu-latest
     container:
       image: almalinux:9
       options: --privileged
-
-    permissions:
-      contents: write
-      packages: write
-      attestations: write
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -73,9 +73,16 @@ jobs:
         shell: bash
         run: |
           for SERVICE in ${{ env.SERVICES }}; do
-            IMAGE_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
-            echo "Tagging and pushing ${SERVICE} as ${IMAGE_NAME}"
-            podman tag ${SERVICE} ${IMAGE_NAME}
-            podman push ${IMAGE_NAME}
-            podman rmi ${IMAGE_NAME}
+            TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
+            echo "Tagging and pushing ${SERVICE}:latest as ${TARGET_NAME}:v${{ inputs.release-version }}"
+            podman tag "${SERVICE}:latest" "${TARGET_NAME}:latest" "${TARGET_NAME}:v${{ inputs.release-version }}"
+            podman push "${TARGET_NAME}:latest"
+            podman push "${TARGET_NAME}:v${{ inputs.release-version }}"
+            podman rmi "${TARGET_NAME}:v${{ inputs.release-version }}"
           done
+
+      - name: Archive Quadlet artifacts & systemd unit files
+        uses: actions/upload-artifact@v7
+        with:
+          name: quadlet-artifacts-v${{ inputs.release-version }}
+          path: infra/containers/
