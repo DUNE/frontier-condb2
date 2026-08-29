@@ -83,5 +83,5 @@ jobs:
       - name: Archive Quadlet artifacts & systemd unit files
         uses: actions/upload-artifact@v7
         with:
-          name: quadlet-artifacts-${{ github.ref_name }}
+          name: quadlet-artifacts-v${{ inputs.release-version }}
           path: infra/containers/
