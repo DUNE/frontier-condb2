@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
+    # branches:
+    #   - main
 
 permissions:
   contents: write
@@ -28,7 +28,14 @@ jobs:
         id: release-version
         run: echo "release_version=$(cat VERSION)" >> $GITHUB_OUTPUT
 
-  build-and-upload-container-artifacts:
+  build-and-upload-client-artifacts:
+    needs: read-release-version
+    uses: ./.github/workflows/client.yml
+    with:
+      release-version: "${{ needs.read-release-version.outputs.release-version }}"
+    secrets: inherit
+
+  build-and-upload-server-artifacts:
     needs: read-release-version
     uses: ./.github/workflows/server.yml
     with:
@@ -38,14 +45,22 @@ jobs:
   release:
     needs:
       - read-release-version
-      - build-and-upload-container-artifacts
+      - build-and-upload-client-artifacts
+      - build-and-upload-server-artifacts
     runs-on: ubuntu-latest
 
     steps:
       - name: Create server-dist directory
         run: mkdir -p server-dist
 
-      - name: Download Quadlet artifacts
+      - name: Download client artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: "frontier-client-v${{ needs.read-release-version.outputs.release-version }}"
+          path: client-dist/
+          skip-decompress: true
+
+      - name: Download server artifacts
         uses: actions/download-artifact@v8
         with:
           name: "quadlet-artifacts-v${{ needs.read-release-version.outputs.release-version }}"

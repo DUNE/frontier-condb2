@@ -1,12 +1,11 @@
 name: Build and Upload Frontier Client
 
 on:
-  push:
-  # workflow_call:
-  #   inputs:
-  #     release-version:
-  #       required: true
-  #       type: string
+  workflow_call:
+    inputs:
+      release-version:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -15,7 +14,7 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-upload:
+  build-and-upload-frontier-client:
     runs-on: ubuntu-latest
     container:
       image: almalinux:9
@@ -49,6 +48,6 @@ jobs:
       - name: Archive and upload Frontier client
         uses: actions/upload-artifact@v7
         with:
-          # name: quadlet-artifacts-v${{ inputs.release-version }}
+          # name: frontier-client-v${{ inputs.release-version }}
           name: frontier-client-v0.1.0
           path: client/
