@@ -31,6 +31,7 @@ jobs:
       - name: Install podman and podman-compose
         run: |
           dnf update -y
+          dnf clean all
           dnf install epel-release -y
           dnf install podman podman-compose -y
 

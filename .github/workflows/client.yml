@@ -29,11 +29,15 @@ jobs:
 
       - name: Install build dependencies
         run: |
+          dnf update -y
+          dnf clean all
           pwd
           ls -al
           dnf install git -y
-          dnf install gcc -y
+          dnf groupinstall "Development Tools"
+          whereis gcc
           whereis g++
+          whereis make
           dnf install openssl-devel -y
           dnf install zlib-devel -y
           dnf install expat expat-devel -y
