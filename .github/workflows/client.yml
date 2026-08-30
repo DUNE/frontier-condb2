@@ -22,14 +22,7 @@ jobs:
       options: --privileged
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          repository: "fermitools/frontier"
-          sparse-checkout: |
-            client/
-
-      - name: Checkout repository
+      - name: Checkout pacparser repository
         uses: actions/checkout@v7
         with:
           repository: "manugarg/pacparser"
@@ -42,6 +35,20 @@ jobs:
           dnf install openssl-devel -y
           dnf install zlib-devel -y
           dnf install expat expat-devel -y
+          make -C src
+          make -C src install
+
+      - name: Checkout Frontier client repository
+        uses: actions/checkout@v7
+        with:
+          repository: "fermitools/frontier"
+          sparse-checkout: |
+            client/
+
+      - name: Build Frontier client
+        run: |
+          pwd
+          ls -al
 
       # - name: Update dune_runcon_prod.yaml
       #   shell: bash
