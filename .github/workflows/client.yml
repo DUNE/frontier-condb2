@@ -34,7 +34,7 @@ jobs:
           pwd
           ls -al
           dnf install git -y
-          dnf groupinstall "Development Tools"
+          dnf groupinstall "Development Tools" -y
           whereis gcc
           whereis g++
           whereis make
