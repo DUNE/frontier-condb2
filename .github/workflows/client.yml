@@ -31,13 +31,8 @@ jobs:
         run: |
           dnf update -y
           dnf clean all
-          pwd
-          ls -al
           dnf install git -y
           dnf groupinstall "Development Tools" -y
-          whereis gcc
-          whereis g++
-          whereis make
           dnf install openssl-devel -y
           dnf install zlib-devel -y
           dnf install expat expat-devel -y
@@ -54,51 +49,11 @@ jobs:
       - name: Build Frontier client
         run: |
           cd client
-          pwd
-          ls -al
           make
 
-      # - name: Update dune_runcon_prod.yaml
-      #   shell: bash
-      #   env:
-      #     API_SERVER_PASSWORD: ${{ secrets.API_SERVER_PASSWORD }}
-      #     DB_HOST: ${{ secrets.DB_HOST }}
-      #     DB_NAME: ${{ secrets.DB_NAME }}
-      #     DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      #     DB_PORT: ${{ secrets.DB_PORT }}
-      #     DB_USER: ${{ secrets.DB_USER }}
-      #   run: |
-      #     sed -i "s+host: <REPLACE_ME>+host: ${{ env.DB_HOST }}+" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-      #     sed -i "s/name: <REPLACE_ME>/name: ${{ env.DB_NAME }}/" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-      #     sed -i "s/port: <REPLACE_ME>/port: ${{ env.DB_PORT }}/" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-      #     sed -i "s/user: <REPLACE_ME>/user: ${{ env.DB_USER }}/" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-      #     sed -i "s/db_password: <REPLACE_ME>/password: ${{ env.DB_PASSWORD }}/" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-      #     sed -i "s/api_server_password: <REPLACE_ME>/password: ${{ env.API_SERVER_PASSWORD }}/" \
-      #       infra/condb2_rest_api/dune_runcon_prod.yaml
-
-      # - name: Build images with podman-compose
-      #   run: podman-compose -f ./infra/compose.yml --env-file ./infra/.env build
-      #     --no-cache --pull
-
-      # - name: Tag and push images to GHCR
-      #   shell: bash
-      #   run: |
-      #     for SERVICE in ${{ env.SERVICES }}; do
-      #       TARGET_NAME=`echo "${{ env.REGISTRY }}/${{ github.repository }}/${SERVICE}" | tr '[:upper:]' '[:lower:]'`
-      #       echo "Tagging and pushing ${SERVICE}:latest as ${TARGET_NAME}:v${{ inputs.release-version }}"
-      #       podman tag "${SERVICE}:latest" "${TARGET_NAME}:latest" "${TARGET_NAME}:v${{ inputs.release-version }}"
-      #       podman push "${TARGET_NAME}:latest"
-      #       podman push "${TARGET_NAME}:v${{ inputs.release-version }}"
-      #       podman rmi "${TARGET_NAME}:v${{ inputs.release-version }}"
-      #     done
-
-      # - name: Archive Quadlet artifacts & systemd unit files
-      #   uses: actions/upload-artifact@v7
-      #   with:
-      #     name: quadlet-artifacts-v${{ inputs.release-version }}
-      #     path: infra/containers/
+      - name: Archive and Upload fn-fileget
+        uses: actions/upload-artifact@v7
+        with:
+          # name: quadlet-artifacts-v${{ inputs.release-version }}
+          name: fn-fileget-v0.1.0
+          path: client/fn-fileget
