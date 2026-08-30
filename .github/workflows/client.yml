@@ -1,4 +1,4 @@
-name: Build and Upload Frontier Client (fn-fileget)
+name: Build and Upload Frontier Client
 
 on:
   push:
@@ -29,13 +29,10 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          dnf update -y
-          dnf clean all
+          dnf update -y && dnf clean all
           dnf install git -y
           dnf groupinstall "Development Tools" -y
-          dnf install openssl-devel -y
-          dnf install zlib-devel -y
-          dnf install expat expat-devel -y
+          dnf install openssl-devel zlib-devel expat expat-devel -y
           make -C src
           make -C src install
 
@@ -47,13 +44,11 @@ jobs:
             client/
 
       - name: Build Frontier client
-        run: |
-          cd client
-          make
+        run: cd client && make
 
-      - name: Archive and Upload fn-fileget
+      - name: Archive and upload Frontier client
         uses: actions/upload-artifact@v7
         with:
           # name: quadlet-artifacts-v${{ inputs.release-version }}
-          name: fn-fileget-v0.1.0
-          path: client/fn-fileget
+          name: frontier-client-v0.1.0
+          path: client/
