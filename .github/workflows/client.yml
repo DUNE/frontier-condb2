@@ -31,6 +31,7 @@ jobs:
         run: |
           pwd
           ls -al
+          dnf install git -y
           dnf install gcc -y
           dnf install openssl-devel -y
           dnf install zlib-devel -y
@@ -47,8 +48,10 @@ jobs:
 
       - name: Build Frontier client
         run: |
+          cd client
           pwd
           ls -al
+          make
 
       # - name: Update dune_runcon_prod.yaml
       #   shell: bash
