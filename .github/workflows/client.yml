@@ -29,12 +29,16 @@ jobs:
           sparse-checkout: |
             client/
 
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          repository: "manugarg/pacparser"
+
       - name: Install build dependencies
         run: |
+          pwd
+          ll
           dnf install gcc -y
-          whereis gcc
-          gcc --version
-          whereis make
           dnf install openssl-devel -y
           dnf install zlib-devel -y
           dnf install expat expat-devel -y
