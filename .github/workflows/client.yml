@@ -31,10 +31,9 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          dnf install gcc-toolset-15 -y
+          dnf install gcc -y
           whereis gcc
           gcc --version
-          dnf install make -y
           whereis make
           dnf install openssl-devel -y
           dnf install zlib-devel -y
