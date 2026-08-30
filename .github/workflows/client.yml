@@ -33,6 +33,7 @@ jobs:
           ls -al
           dnf install git -y
           dnf install gcc -y
+          whereis g++
           dnf install openssl-devel -y
           dnf install zlib-devel -y
           dnf install expat expat-devel -y
