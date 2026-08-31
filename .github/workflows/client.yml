@@ -48,6 +48,5 @@ jobs:
       - name: Archive and upload Frontier client
         uses: actions/upload-artifact@v7
         with:
-          # name: frontier-client-v${{ inputs.release-version }}
-          name: frontier-client-v0.1.0
+          name: frontier-client-v${{ inputs.release-version }}
           path: client/
