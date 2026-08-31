@@ -1,4 +1,4 @@
-name: Build and Push Podman Images to GHCR
+name: Build and Upload Server Artifacts
 
 on:
   workflow_call:
@@ -26,11 +26,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install podman and podman-compose
         run: |
           dnf update -y
+          dnf clean all
           dnf install epel-release -y
           dnf install podman podman-compose -y
 

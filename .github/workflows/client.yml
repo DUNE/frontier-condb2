@@ -1,0 +1,52 @@
+name: Build and Upload Client Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+jobs:
+  build-and-upload-frontier-client:
+    runs-on: ubuntu-latest
+    container:
+      image: almalinux:9
+      options: --privileged
+
+    steps:
+      - name: Checkout pacparser repository
+        uses: actions/checkout@v7
+        with:
+          repository: "manugarg/pacparser"
+
+      - name: Install build dependencies
+        run: |
+          dnf update -y && dnf clean all
+          dnf install git -y
+          dnf groupinstall "Development Tools" -y
+          dnf install openssl-devel zlib-devel expat expat-devel -y
+          make -C src
+          make -C src install
+
+      - name: Checkout Frontier client repository
+        uses: actions/checkout@v7
+        with:
+          repository: "fermitools/frontier"
+          sparse-checkout: |
+            client/
+
+      - name: Build Frontier client
+        run: cd client && make
+
+      - name: Archive and upload Frontier client
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontier-client-v${{ inputs.release-version }}
+          path: client/
