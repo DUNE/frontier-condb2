@@ -1,4 +1,4 @@
-name: Build and Upload Frontier Client
+name: Build and Upload Client Artifacts
 
 on:
   workflow_call:

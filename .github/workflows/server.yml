@@ -1,4 +1,4 @@
-name: Build and Push Podman Images to GHCR
+name: Build and Upload Server Artifacts
 
 on:
   workflow_call:
