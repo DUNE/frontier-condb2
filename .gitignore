@@ -18,5 +18,5 @@ wheels/
 # MkDocs
 site
 
-get\?
+get\?*
 infra/condb2_rest_api/dune_con_prod.local.yml
