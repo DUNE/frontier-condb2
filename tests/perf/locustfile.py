@@ -2,7 +2,8 @@ import os
 import subprocess
 import sys
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from locust import User, task
 

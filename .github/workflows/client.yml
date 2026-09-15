@@ -39,8 +39,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: "fermitools/frontier"
-          sparse-checkout: |
-            client/
+          sparse-checkout: client/
 
       - name: Build Frontier client
         run: cd client && make

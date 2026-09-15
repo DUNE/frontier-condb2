@@ -1,6 +1,6 @@
 [project]
 name = "frontier-condb2"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
@@ -17,9 +17,5 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
-lint = [
-    "ruff>=0.14.10",
-]
-test = [
-    "locust>=2.43.0",
-]
+lint = ["ruff>=0.14.10"]
+test = ["locust>=2.43.0"]
