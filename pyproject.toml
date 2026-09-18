@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-protodune-conditions = "protodune_conditions.main:app"
+pd-cdb = "protodune_conditions.main:app"
 # locust = "locust -f tests/perf/locustfile.py"
 
 [build-system]
