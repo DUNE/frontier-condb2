@@ -1,12 +1,12 @@
 from typing import Annotated
 
 import typer
-from rich import console, print, table
 
 from frontier_condb2.client import Client
+from frontier_condb2.client_output import verbose
 from frontier_condb2.client_state import ClientState
 
-app = typer.Typer()
+app = typer.Typer(pretty_exceptions_show_locals=True)
 
 
 @app.callback()
@@ -50,16 +50,6 @@ def main(
 
 @app.command()
 def get_data(ctx: typer.Context) -> None:
-    if ctx.obj.verbose is True:
-        print(f"\nRunning <{ctx.command.name}> with the following options:\n")
-        csl = console.Console()
-        tbl = table.Table("Option", "Value")
-        tbl.add_row("--api-server-url", f"{ctx.obj.api_server_url}")
-        tbl.add_row("--cache-proxy-url", f"{ctx.obj.cache_proxy_url}")
-        tbl.add_row("--verbose, -v", f"{ctx.obj.verbose}")
-        csl.print(tbl)
-        csl.print()
-
     result = Client(ctx.obj).get_data()
 
     if result.returncode != 0:
@@ -67,4 +57,5 @@ def get_data(ctx: typer.Context) -> None:
         print(result.stderr)
         raise typer.Exit(code=result.returncode)
 
-    print(f"Results: {result.stdout}")
+    if ctx.obj.verbose is True:
+        verbose(ctx, result)

@@ -10,7 +10,7 @@ class Client:
 
     def get_data(self) -> subprocess.CompletedProcess:
         connect_string = f"-c '(serverurl={self.state.api_server_url})(proxyurl={self.state.cache_proxy_url})' \
-                          'get?folder=pdunesp.run_conditionstest&t0=25100&t1=25115'"
+                          'get?folder=pdunesp.run_conditionstest&t0=28650&t1=28655'"
 
         env = os.environ.copy()
         env["LD_LIBRARY_PATH"] = self.state.ld_library_path
