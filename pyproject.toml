@@ -1,5 +1,5 @@
 [project]
-name = "frontier-condb2"
+name = "protodune-conditions"
 version = "0.1.1"
 description = "Add your description here"
 readme = "README.md"
@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-frontier-condb2 = "frontier_condb2.main:app"
+protodune-conditions = "protodune_conditions.main:app"
 # locust = "locust -f tests/perf/locustfile.py"
 
 [build-system]

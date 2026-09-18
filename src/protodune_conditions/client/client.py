@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from frontier_condb2.client_state import ClientState
+from protodune_conditions.client.client_state import ClientState
 
 
 class Client:

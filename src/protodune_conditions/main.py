@@ -2,9 +2,9 @@ from typing import Annotated
 
 import typer
 
-from frontier_condb2.client import Client
-from frontier_condb2.client_output import verbose
-from frontier_condb2.client_state import ClientState
+from protodune_conditions.client.client import Client
+from protodune_conditions.client.client_output import verbose
+from protodune_conditions.client.client_state import ClientState
 
 app = typer.Typer(pretty_exceptions_show_locals=True)
 

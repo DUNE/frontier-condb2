@@ -10,7 +10,7 @@ class ClientState(BaseModel):
         default=HttpUrl("http://dunefrontier.fnal.gov:8000/dune_runcon_prod"),
         validate_default=True,
     )
-    bin_path: str = Field(default="frontier_condb2.bin", frozen=True)
+    bin_path: str = Field(default="protodune_conditions.client.bin", frozen=True)
     cache_proxy_url: HttpUrl = Field(
         default=HttpUrl("http://localhost:3128"),
         validate_default=True,
