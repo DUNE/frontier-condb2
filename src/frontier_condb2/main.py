@@ -1,39 +1,33 @@
-from dataclasses import dataclass
 from typing import Annotated
 
 import typer
+from rich import console, print, table
 
-from frontier_condb2.frontier_client import run
+from frontier_condb2.client import Client
+from frontier_condb2.client_state import ClientState
 
 app = typer.Typer()
-
-
-@dataclass
-class ClientState:
-    api_server_url: str
-    cache_proxy_url: str
-    verbose: bool
 
 
 @app.callback()
 def main(
     ctx: typer.Context,
     api_server_url: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--api-server-url",
-            envvar="CDB_API_SERVER_URL",
-            help="Conditions Database API Server URL.",
+            envvar="CONDB_API_SERVER_URL",
+            help=f"Conditions Database API Server URL - Default: {ClientState().api_server_url}",
         ),
-    ] = "http://dunefrontier.fnal.gov:8000/dune_runcon_prod",
+    ] = None,
     cache_proxy_url: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--cache-proxy-url",
             envvar="FRONTIER_CACHE_PROXY_URL",
-            help="Frontier Cache Proxy URL.",
+            help=f"Frontier Cache Proxy URL - Default: {ClientState().cache_proxy_url}",
         ),
-    ] = "http://localhost:3128",
+    ] = None,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -43,26 +37,34 @@ def main(
         ),
     ] = False,
 ) -> None:
-    typer.echo(f"Cache Proxy URL: {cache_proxy_url}")
-    typer.echo(f"Conditions DB API Server URL: {api_server_url}")
+    overrides = {}
+    overrides["verbose"] = verbose
 
-    ctx.obj = ClientState(
-        api_server_url=api_server_url, cache_proxy_url=cache_proxy_url, verbose=verbose
-    )
+    if api_server_url is not None:
+        overrides["api_server_url"] = api_server_url
+    if cache_proxy_url is not None:
+        overrides["cache_proxy_url"] = cache_proxy_url
+
+    ctx.obj = ClientState(**overrides)
 
 
 @app.command()
-def get(ctx: typer.Context) -> None:
-    state: ClientState = ctx.obj
-    connect_string = (
-        f"-c '(serverurl={state.api_server_url})(proxyurl={state.cache_proxy_url})' \
-                        'get?folder=pdunesp.run_conditionstest&t0=25100&t1=25115'"
-    )
-    result = run(connect_string)
+def get_data(ctx: typer.Context) -> None:
+    if ctx.obj.verbose is True:
+        print(f"\nRunning <{ctx.command.name}> with the following options:\n")
+        csl = console.Console()
+        tbl = table.Table("Option", "Value")
+        tbl.add_row("--api-server-url", f"{ctx.obj.api_server_url}")
+        tbl.add_row("--cache-proxy-url", f"{ctx.obj.cache_proxy_url}")
+        tbl.add_row("--verbose, -v", f"{ctx.obj.verbose}")
+        csl.print(tbl)
+        csl.print()
+
+    result = Client(ctx.obj).get_data()
 
     if result.returncode != 0:
-        typer.echo(result.stdout)
-        typer.echo(result.stderr, err=True)
+        print(result.stdout)
+        print(result.stderr)
         raise typer.Exit(code=result.returncode)
 
-    typer.echo(result.stdout)
+    print(f"Results: {result.stdout}")
