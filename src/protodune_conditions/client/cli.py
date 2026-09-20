@@ -1,5 +1,5 @@
 from subprocess import CompletedProcess
-from typing import Annotated, Any
+from typing import Annotated
 
 import typer
 
@@ -18,7 +18,7 @@ def main(
         typer.Option(
             default="--api-server-url",
             envvar="CONDB_API_SERVER_URL",
-            help=f"Conditions Database API Server URL - Default: {ClientState().api_server_url}",
+            help=f"(Optional) Conditions Database API Server URL - Default: {ClientState().api_server_url}",
         ),
     ] = None,
     cache_proxy_url: Annotated[
@@ -26,7 +26,7 @@ def main(
         typer.Option(
             default="--cache-proxy-url",
             envvar="FRONTIER_CACHE_PROXY_URL",
-            help=f"Frontier Cache Proxy URL - Default: {ClientState().cache_proxy_url}",
+            help=f"(Optional) Frontier Cache Proxy URL - Default: {ClientState().cache_proxy_url}",
         ),
     ] = None,
     verbose: Annotated[
@@ -34,7 +34,7 @@ def main(
         typer.Option(
             "--verbose",
             "-v",
-            help="Turn on verbose output.",
+            help="(Optional) Turn on verbose output.",
         ),
     ] = False,
 ) -> None:
@@ -50,8 +50,23 @@ def main(
 
 
 @app.command()
-def get_data(ctx: typer.Context) -> None:
-    result: CompletedProcess[Any] = Client(state=ctx.obj).get_data()
+def get_data(
+    ctx: typer.Context,
+    format: Annotated[
+        str | None,
+        typer.Option(
+            default="--format",
+            help="(Optional) Format of the output. Can be either 'csv' or 'json' - Default: csv",
+        ),
+    ] = None,
+) -> None:
+    overrides: dict[str, str] = {}
+
+    if format is not None:
+        overrides["format"] = format
+        ctx.obj = ClientState(**overrides)
+
+    result: CompletedProcess[str] = Client(state=ctx.obj).get_data()
 
     if result.returncode != 0:
         print(result.stdout)

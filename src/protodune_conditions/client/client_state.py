@@ -16,6 +16,7 @@ class ClientState(BaseModel):
         default=HttpUrl(url="http://localhost:3128"),
         validate_default=True,
     )
+    format: str = "csv"
     frontier_client_name: str = Field(default="fn-fileget", frozen=True)
     verbose: bool = False
 
