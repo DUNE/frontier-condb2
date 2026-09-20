@@ -1,4 +1,5 @@
-from typing import Annotated
+from subprocess import CompletedProcess
+from typing import Annotated, Any
 
 import typer
 
@@ -15,7 +16,7 @@ def main(
     api_server_url: Annotated[
         str | None,
         typer.Option(
-            "--api-server-url",
+            default="--api-server-url",
             envvar="CONDB_API_SERVER_URL",
             help=f"Conditions Database API Server URL - Default: {ClientState().api_server_url}",
         ),
@@ -23,7 +24,7 @@ def main(
     cache_proxy_url: Annotated[
         str | None,
         typer.Option(
-            "--cache-proxy-url",
+            default="--cache-proxy-url",
             envvar="FRONTIER_CACHE_PROXY_URL",
             help=f"Frontier Cache Proxy URL - Default: {ClientState().cache_proxy_url}",
         ),
@@ -37,8 +38,8 @@ def main(
         ),
     ] = False,
 ) -> None:
-    overrides = {}
-    overrides["verbose"] = verbose
+    overrides: dict[str, str] = {}
+    overrides["verbose"] = str(object=verbose)
 
     if api_server_url is not None:
         overrides["api_server_url"] = api_server_url
@@ -50,12 +51,12 @@ def main(
 
 @app.command()
 def get_data(ctx: typer.Context) -> None:
-    result = Client(ctx.obj).get_data()
+    result: CompletedProcess[Any] = Client(state=ctx.obj).get_data()
 
     if result.returncode != 0:
         print(result.stdout)
         print(result.stderr)
         raise typer.Exit(code=result.returncode)
 
-    if ctx.obj.verbose is True:
+    if bool(ctx.obj.verbose) is True:
         verbose(ctx, result)
