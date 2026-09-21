@@ -10,7 +10,7 @@ from rich.table import Table
 from rich.text import Text
 
 
-def verbose(ctx: typer.Context, result: CompletedProcess) -> None:
+def print_verbose(ctx: typer.Context, result: CompletedProcess) -> None:
     details_panel_title_text = Text(
         text=f"Command Details: <{ctx.command_path}>", style="bright_yellow"
     )
