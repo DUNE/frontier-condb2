@@ -2,11 +2,11 @@ from subprocess import CompletedProcess
 from typing import Annotated, Any
 
 import typer
-from pd_cdb_lib.client import Client
-from pd_cdb_lib.conditions import RunConditions
-from pd_cdb_lib.state import ClientState
+from pd_cdb_api.conditions import RunConditions
+from pd_cdb_api.state import ApiClientState
+from pd_cdb_api.wrapper import ApiClientWrapper
 
-from pd_cdb_cli.cli_output import print_verbose
+from pd_cdb_cli.output import print_verbose
 
 app = typer.Typer(pretty_exceptions_show_locals=True)
 
@@ -19,7 +19,7 @@ def main(
         typer.Option(
             "--api-server-url",
             envvar="CONDB_API_SERVER_URL",
-            help=f"(Optional) Conditions Database API Server URL - Default: {ClientState().api_server_url}",
+            help=f"(Optional) Conditions Database API Server URL - Default: {ApiClientState().api_server_url}",
         ),
     ] = None,
     cache_proxy_url: Annotated[
@@ -27,7 +27,7 @@ def main(
         typer.Option(
             "--cache-proxy-url",
             envvar="FRONTIER_CACHE_PROXY_URL",
-            help=f"(Optional) Frontier Cache Proxy URL - Default: {ClientState().cache_proxy_url}",
+            help=f"(Optional) Frontier Cache Proxy URL - Default: {ApiClientState().cache_proxy_url}",
         ),
     ] = None,
     verbose: Annotated[
@@ -47,7 +47,7 @@ def main(
     if cache_proxy_url is not None:
         overrides["cache_proxy_url"] = cache_proxy_url
 
-    ctx.obj = ClientState(**overrides)
+    ctx.obj = ApiClientState(**overrides)
 
 
 @app.command()
@@ -114,7 +114,7 @@ def get_data(
     if data_type is not None:
         conditions.data_type = data_type
 
-    result: CompletedProcess[str] = Client(
+    result: CompletedProcess[str] = ApiClientWrapper(
         conditions=conditions, state=ctx.obj
     ).get_data()
 

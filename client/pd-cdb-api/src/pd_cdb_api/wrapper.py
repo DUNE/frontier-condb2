@@ -1,16 +1,16 @@
 import os
 import subprocess
 
-from pd_cdb_lib.conditions import RunConditions
-from pd_cdb_lib.state import ClientState
+from pd_cdb_api.conditions import RunConditions
+from pd_cdb_api.state import ApiClientState
 
 
-class Client:
+class ApiClientWrapper:
     def __init__(
-        self, conditions: RunConditions, state: ClientState | None = None
+        self, conditions: RunConditions, state: ApiClientState | None = None
     ) -> None:
         self.conditions: RunConditions = conditions
-        self.state: ClientState = state or ClientState()
+        self.state: ApiClientState = state or ApiClientState()
 
     def get_data(self) -> subprocess.CompletedProcess[str]:
         env: dict[str, str] = os.environ.copy()

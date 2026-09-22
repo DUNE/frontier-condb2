@@ -1,14 +1,14 @@
 [project]
 name = "pd-cdb-cli"
 version = "0.1.1"
-description = "ProtoDUNE Conditions Data Service CLI"
+description = "ProtoDUNE Conditions Data Service Client CLI"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
 requires-python = ">=3.14"
-dependencies = ["pd-cdb-lib", "typer>=0.21.1"]
+dependencies = ["pd-cdb-api", "typer>=0.21.1"]
 
 [tool.uv.sources]
-pd-cdb-lib = { workspace = true }
+pd-cdb-api = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]

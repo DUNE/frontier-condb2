@@ -1,7 +1,7 @@
 [project]
-name = "pd-cdb-lib"
+name = "pd-cdb-api"
 version = "0.1.1"
-description = "ProtoDUNE Conditions Data Service Client Library"
+description = "ProtoDUNE Conditions Data Service Client API Wrapper"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
 requires-python = ">=3.14"

@@ -11,7 +11,6 @@ CONDB2_SERVER_URL = "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod"
 FN_FILEGET_PATH = "./clients/frontier/client/fn-fileget"
 FRONTIER_CLIENT_LD_LIBRARY_PATH = "/home/mike/dev/frontier/client"
 FRONTIER_PROXY_URL = "http://localhost:3128"
-# FRONTIER_SERVER_URL = "http://fermicloud725.fnal.gov:8000/dune_runcon_prod"
 FRONTIER_SERVER_URL = "http://dunefrontier.fnal.gov:8000/dune_runcon_prod"
 
 
