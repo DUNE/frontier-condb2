@@ -2,11 +2,11 @@ from subprocess import CompletedProcess
 from typing import Annotated, Any
 
 import typer
-from pd_cdb_api.conditions import RunConditions
-from pd_cdb_api.state import ApiClientState
-from pd_cdb_api.wrapper import ApiClientWrapper
+from pd_cds_api.conditions import RunConditions
+from pd_cds_api.state import ApiClientState
+from pd_cds_api.wrapper import ApiClientWrapper
 
-from pd_cdb_cli.output import print_verbose
+from pd_cds_cli.output import print_verbose
 
 app = typer.Typer(pretty_exceptions_show_locals=True)
 

@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-from pd_cdb_api.conditions import RunConditions
-from pd_cdb_api.state import ApiClientState
+from pd_cds_api.conditions import RunConditions
+from pd_cds_api.state import ApiClientState
 
 
 class ApiClientWrapper:
@@ -56,7 +56,7 @@ class ApiClientWrapper:
         return f"{query_string}'"
 
     def _move_data(self, query_string: str) -> subprocess.CompletedProcess[str]:
-        data_dir = "pd-cdb-data"
+        data_dir = "pd-cds-data"
         folder = self.conditions.folder
         format = self.state.format
         t0 = self.conditions.t0

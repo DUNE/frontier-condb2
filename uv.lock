@@ -4,9 +4,9 @@ requires-python = ">=3.14"
 
 [manifest]
 members = [
-    "pd-cdb",
-    "pd-cdb-api",
-    "pd-cdb-cli",
+    "pd-cds",
+    "pd-cds-api",
+    "pd-cds-cli",
 ]
 
 [[package]]
@@ -597,11 +597,11 @@ wheels = [
 ]
 
 [[package]]
-name = "pd-cdb"
+name = "pd-cds"
 version = "0.1.1"
 source = { editable = "." }
 dependencies = [
-    { name = "pd-cdb-cli" },
+    { name = "pd-cds-cli" },
 ]
 
 [package.dev-dependencies]
@@ -617,7 +617,7 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pd-cdb-cli", editable = "client/pd-cdb-cli" }]
+requires-dist = [{ name = "pd-cds-cli", editable = "client/pd-cds-cli" }]
 
 [package.metadata.requires-dev]
 dev = [
@@ -628,9 +628,9 @@ lint = [{ name = "ruff", specifier = ">=0.14.10" }]
 test = [{ name = "locust", specifier = ">=2.43.0" }]
 
 [[package]]
-name = "pd-cdb-api"
+name = "pd-cds-api"
 version = "0.1.1"
-source = { editable = "client/pd-cdb-api" }
+source = { editable = "client/pd-cds-api" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -652,11 +652,11 @@ lint = [{ name = "ruff", specifier = ">=0.14.10" }]
 test = []
 
 [[package]]
-name = "pd-cdb-cli"
+name = "pd-cds-cli"
 version = "0.1.1"
-source = { editable = "client/pd-cdb-cli" }
+source = { editable = "client/pd-cds-cli" }
 dependencies = [
-    { name = "pd-cdb-api" },
+    { name = "pd-cds-api" },
     { name = "typer" },
 ]
 
@@ -670,7 +670,7 @@ lint = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pd-cdb-api", editable = "client/pd-cdb-api" },
+    { name = "pd-cds-api", editable = "client/pd-cds-api" },
     { name = "typer", specifier = ">=0.21.1" },
 ]
 

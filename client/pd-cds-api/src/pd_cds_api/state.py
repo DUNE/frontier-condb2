@@ -11,7 +11,7 @@ class ApiClientState(BaseModel):
         default=HttpUrl(url="http://dunefrontier.fnal.gov:8000/dune_runcon_prod"),
         validate_default=True,
     )
-    bin_path: str = Field(default="pd_cdb_api.bin", frozen=True)
+    bin_path: str = Field(default="pd_cds_api.bin", frozen=True)
     cache_proxy_url: HttpUrl = Field(
         default=HttpUrl(url="http://localhost:3128"),
         # default=HttpUrl(url="http://squid.fnal.gov:3128"),
