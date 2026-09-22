@@ -2,11 +2,11 @@ from subprocess import CompletedProcess
 from typing import Annotated, Any
 
 import typer
+from pd_cdb_lib.client import Client
+from pd_cdb_lib.conditions import RunConditions
+from pd_cdb_lib.state import ClientState
 
-from protodune_conditions.client.client import Client
-from protodune_conditions.client.client_output import print_verbose
-from protodune_conditions.client.client_state import ClientState
-from protodune_conditions.client.conditions import RunConditions
+from pd_cdb_cli.cli_output import print_verbose
 
 app = typer.Typer(pretty_exceptions_show_locals=True)
 

@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-from protodune_conditions.client.client_state import ClientState
-from protodune_conditions.client.conditions import RunConditions
+from pd_cdb_lib.conditions import RunConditions
+from pd_cdb_lib.state import ClientState
 
 
 class Client:
