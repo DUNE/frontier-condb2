@@ -1,128 +1,108 @@
-import os
 import subprocess
 import sys
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from locust import User, task
+from pd_cds_api.conditions import RunConditions
+from pd_cds_api.state import ApiClientState
+from pd_cds_api.wrapper import ApiClientWrapper
 
-CONDB2_SERVER_URL = "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod"
-FN_FILEGET_PATH = "./clients/frontier/client/fn-fileget"
-FRONTIER_CLIENT_LD_LIBRARY_PATH = "/home/mike/dev/frontier/client"
-FRONTIER_PROXY_URL = "http://localhost:3128"
-FRONTIER_SERVER_URL = "http://dunefrontier.fnal.gov:8000/dune_runcon_prod"
+STATE = ApiClientState(format=None, frontier_ttl=3)
+FOLDER = "pdunesp.run_conditionstest"
 
 
-class SubprocessClient:
-    def __init__(self, request_event) -> None:
+class ApiClient:
+    def __init__(self, request_event, state: ApiClientState) -> None:
         self._request_event = request_event
+        self._state = state
 
-    def __getattr__(self, name) -> Callable[..., Any | str]:
-        def wrapper(*args) -> Any | str:
-            _env = os.environ.copy()
-            _env["LD_LIBRARY_PATH"] = FRONTIER_CLIENT_LD_LIBRARY_PATH
-            _request_meta = {
-                "request_type": f"{args}",
-                "name": name,
-                "start_time": time.time(),
-                "response_length": 0,
-                "response": None,
-                "context": {},
-                "exception": None,
-            }
-            _result = None
-            _start_perf_counter = time.perf_counter()
+    def run_query(self, conditions: RunConditions) -> str | None:
+        return self._timed_request(
+            name=self._request_name(conditions),
+            call=lambda: ApiClientWrapper(
+                conditions=conditions, state=self._state
+            ).run_query(),
+        )
 
-            try:
-                _result = subprocess.run(
-                    [*args],
-                    env=_env,
-                    capture_output=True,
-                    check=True,
-                    shell=True,
-                    text=True,
-                )
+    def run_queries(self, conditions: Sequence[RunConditions]) -> str | None:
+        names = ", ".join(self._request_name(c) for c in conditions)
+        return self._timed_request(
+            name=f"batch[{len(conditions)}] {names}",
+            call=lambda: ApiClientWrapper.run_queries(
+                conditions, state=self._state
+            ),
+        )
 
-                if (
-                    not _result.stdout
-                    or len(_result.stdout) == 0
-                    or _result.stdout == ""
-                ):
-                    _request_meta["exception"] = "No content in the response."
-                    sys.stdout.write(
-                        f"request_meta['exception']: {_request_meta['exception']}\n"
-                    )
-                else:
-                    _request_meta["response"] = _result.stdout
-                    sys.stdout.write(
-                        f"request_meta['response']: {_request_meta['response']}\n"
-                    )
-            except subprocess.CalledProcessError as cpe:
+    def _timed_request(
+        self, name: str, call: Callable[[], subprocess.CompletedProcess[str]]
+    ) -> str | None:
+        _request_meta: dict[str, Any] = {
+            "request_type": "fn-fileget",
+            "name": name,
+            "start_time": time.time(),
+            "response_length": 0,
+            "response": None,
+            "context": {},
+            "exception": None,
+        }
+        _response = None
+        _start_perf_counter = time.perf_counter()
+
+        try:
+            _response = call().stdout
+
+            if not _response:
+                _request_meta["exception"] = "No content in the response."
                 sys.stdout.write(
-                    f"Subprocess call returned a non-zero value: {cpe.returncode}\n{cpe.stderr}\n{cpe}"
+                    f"request_meta['exception']: {_request_meta['exception']}\n"
                 )
-                _request_meta["exception"] = cpe
+            else:
+                _request_meta["response"] = _response
+                _request_meta["response_length"] = len(_response)
+                sys.stdout.write(f"request_meta['response']: {_response}\n")
+        except subprocess.CalledProcessError as cpe:
+            sys.stdout.write(
+                f"Subprocess call returned a non-zero value: {cpe.returncode}\n{cpe.stderr}\n{cpe}"
+            )
+            _request_meta["exception"] = cpe
 
-            _request_meta["response_time"] = (
-                time.perf_counter() - _start_perf_counter
-            ) * 1000
-            self._request_event.fire(**_request_meta)
-            return _request_meta["response"]
+        _request_meta["response_time"] = (
+            time.perf_counter() - _start_perf_counter
+        ) * 1000
+        self._request_event.fire(**_request_meta)
+        return _response
 
-        return wrapper
+    def _request_name(self, conditions: RunConditions) -> str:
+        if conditions.t1 is not None:
+            return f"{conditions.folder} t0={conditions.t0} t1={conditions.t1}"
+        return f"{conditions.folder} t={conditions.t0}"
 
 
-class SubProcessUser(User):
+class ApiConditionsUser(User):
     abstract = True
 
     def __init__(self, environment) -> None:
         super().__init__(environment)
-        self.client = SubprocessClient(request_event=environment.events.request)
+        self.client = ApiClient(request_event=environment.events.request, state=STATE)
 
 
-class ConditionsDataUser(SubProcessUser):
-    # @task
-    # def pd_vd_curl_query(self) -> None:
-    #     self.client.curl_query_cdb(
-    #         f"curl '{CONDB2_SERVER_URL}/get?folder=pdunesp.run_conditionstest&t=25034'"
-    #     )
-    #     self.client.curl_query_cdb(
-    #         f"curl '{CONDB2_SERVER_URL}/get?folder=pdunesp.run_conditionstest&t0=25100&t1=25115'"
-    #     )
-    #     self.client.curl_query_cdb(
-    #         f"curl '{CONDB2_SERVER_URL}/get?folder=pdunesp.run_conditionstest&t0=28650&t1=28655'"
-    #     )
-    #     self.client.curl_query_cdb(
-    #         f"curl '{CONDB2_SERVER_URL}/get?folder=pdunesp.run_conditionstest&t0=39252&t1=40260'"
-    #     )
+class ConditionsDataUser(ApiConditionsUser):
+    @task
+    def pd_vd_run_conditionstest_query(self) -> None:
+        self.client.run_query(RunConditions(folder=FOLDER, t0=25034))
+        self.client.run_query(RunConditions(folder=FOLDER, t0=25100, t1=25115))
+        self.client.run_query(RunConditions(folder=FOLDER, t0=28650, t1=28655))
+        self.client.run_query(RunConditions(folder=FOLDER, t0=39252, t1=40260))
 
     @task
-    def pd_vd_fnfileget_query(self) -> None:
-        self.client.pd_vd_fnfileget_query(
-            f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=pdunesp.run_conditionstest&t=25034'",
+    def pd_vd_run_conditionstest_batch(self) -> None:
+        self.client.run_queries(
+            [
+                RunConditions(folder=FOLDER, t0=25034),
+                RunConditions(folder=FOLDER, t0=25100, t1=25115),
+                RunConditions(folder=FOLDER, t0=28650, t1=28655),
+                RunConditions(folder=FOLDER, t0=39252, t1=40260),
+            ]
         )
-        self.client.pd_vd_fnfileget_query(
-            f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=pdunesp.run_conditionstest&t0=25100&t1=25115'",
-        )
-        self.client.pd_vd_fnfileget_query(
-            f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=pdunesp.run_conditionstest&t0=28650&t1=28655'",
-        )
-        self.client.pd_vd_fnfileget_query(
-            f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=pdunesp.run_conditionstest&t0=39252&t1=40260'",
-        )
-
-    # @task
-    # def pd_2x2_fnfileget_query(self) -> None:
-    # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.gain&t=0"
-    # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.elifetime&t=0"
-    # curl "https://dbdata0vm.fnal.gov:9443/dune_runcon_prod/get?folder=neardet2x2.vdrift&t=0"
-    # self.client.pd_2x2_fnfileget_query(
-    #     f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=neardet2x2.gain&t=0'",
-    # )
-    # self.client.pd_2x2_fnfileget_query(
-    #     f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=neardet2x2.elifetime&t=0'",
-    # )
-    # self.client.pd_2x2_fnfileget_query(
-    #     f"{FN_FILEGET_PATH} -c '(serverurl={FRONTIER_SERVER_URL})(proxyurl={FRONTIER_PROXY_URL})' 'get?folder=neardet2x2.vdrift&t=0'",
-    # )

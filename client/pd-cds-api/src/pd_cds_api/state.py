@@ -1,9 +1,26 @@
 import os
+from functools import cache
 from importlib.resources import as_file, files
 from importlib.resources.abc import Traversable
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, Field, HttpUrl, computed_field
+
+
+@cache
+def _resolve_client_path(bin_path: str, client_name: str) -> Path:
+    resource: Traversable = files(anchor=bin_path).joinpath(client_name)
+
+    with as_file(resource) as path:
+        if not os.access(path, mode=os.X_OK):
+            path.chmod(mode=0o755)  # defensive: some install paths lose exec bit
+        return Path(path)
+
+
+@cache
+def _resolve_ld_library_path(bin_path: str) -> str:
+    return str(object=files(anchor=bin_path))
 
 
 class ApiClientState(BaseModel):
@@ -18,23 +35,17 @@ class ApiClientState(BaseModel):
         # default=HttpUrl(url="http://cvmfsbproxy.fnal.gov:3126"),
         validate_default=True,
     )
-    format: str = "csv"
+    format: str | None = "csv"
     frontier_client_name: str = Field(default="fn-fileget", frozen=True)
+    frontier_ttl: Literal[1, 2, 3] = 2
     verbose: bool = False
 
     @computed_field
     @property
     def frontier_client_path(self) -> Path:
-        resource: Traversable = files(anchor=self.bin_path).joinpath(
-            self.frontier_client_name
-        )
-
-        with as_file(resource) as path:
-            if not os.access(path, mode=os.X_OK):
-                path.chmod(mode=0o755)  # defensive: some install paths lose exec bit
-            return path
+        return _resolve_client_path(self.bin_path, self.frontier_client_name)
 
     @computed_field
     @property
     def ld_library_path(self) -> str:
-        return str(object=files(anchor=self.bin_path))
+        return _resolve_ld_library_path(self.bin_path)
