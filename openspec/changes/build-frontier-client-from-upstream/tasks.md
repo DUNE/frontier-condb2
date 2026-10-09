@@ -4,7 +4,7 @@
 
 - [x] 1.1 Write a build recipe that, from a `fermitools/frontier` `client/` checkout, runs `make` and then links `fn-fileget` from `fn-fileget.o` + `.libs/*.o` against static OpenSSL/zlib/expat (mirroring `fn-req.static`, `Makefile:296-297`), and verify with `ldd` that the result needs no `libfrontier_client.so`.
 - [x] 1.2 Link `fn-fileget` with `-Wl,-rpath,'$ORIGIN'` and stage `libpacparser.so.1` beside it; verify PAC resolution works from the co-located lib with `LD_LIBRARY_PATH` unset (spec: self-contained executable).
-- [x] 1.3 Capture the frontier version (`FN_VER_MAJOR.MINOR` from the Makefile) and the pinned upstream SHA into `.frontier-manifest.json`; verify the manifest fields are populated from the actual build.
+- [x] 1.3 Capture the frontier version (`FN_VER_MAJOR.MINOR` from the Makefile) and the pinned upstream SHA into `frontier-manifest.json`; verify the manifest fields are populated from the actual build.
 - [x] 1.4 Wrap the above as a container-runnable build (Docker/Podman) parameterized by `FRONTIER_REF` and target arch; verify it produces `fn-fileget`, `libpacparser.so.1`, licenses, and the manifest in an output dir.
 
 ## 2. Packaging restructure (selector + binary distribution + anchor)
@@ -31,7 +31,7 @@
 
 - [x] 5.1 Create `.github/workflows/frontier-build.yml` (`workflow_call`) building via task 1.4 across an `x86_64`/`aarch64` matrix in manylinux (QEMU for arm64); verify it uploads per-arch `frontier-runtime_<ver>_<arch>` artifacts.
 - [ ] 5.2 Read the upstream pin from a repo variable `FRONTIER_REF` (no workflow logic edits to bump); verify changing the variable changes the checked-out SHA recorded in the manifest.
-- [x] 5.3 Upload `.frontier-manifest.json` per arch inside the runtime artifact; verify the manifest is downloadable with the artifact. (GitHub signed attestations deliberately omitted to keep the reusable-call permission chain at `contents: read`.)
+- [x] 5.3 Upload `frontier-manifest.json` per arch inside the runtime artifact; verify the manifest is downloadable with the artifact. (GitHub signed attestations deliberately omitted to keep the reusable-call permission chain at `contents: read`.)
 
 ## 6. CI — wheel build + smoke gate
 

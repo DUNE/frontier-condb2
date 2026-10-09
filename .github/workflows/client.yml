@@ -57,8 +57,17 @@ jobs:
 
       - name: Stage native runtime into pd-cds-api-bin
         run: |
+          echo "::group::downloaded artifact contents"
+          ls -la native/
+          echo "::endgroup::"
+          for f in fn-fileget libpacparser.so.1 frontier-manifest.json; do
+            if [ ! -f "native/$f" ]; then
+              echo "::error::$f absent from downloaded frontier-runtime artifact"
+              exit 1
+            fi
+          done
           dest=client/pd-cds-api-bin/src/pd_cds_api_bin
-          cp native/fn-fileget native/libpacparser.so.1 native/.frontier-manifest.json "$dest/"
+          cp native/fn-fileget native/libpacparser.so.1 native/frontier-manifest.json "$dest/"
           chmod 755 "$dest/fn-fileget"
           scripts/stage-frontier-client.sh --check
 

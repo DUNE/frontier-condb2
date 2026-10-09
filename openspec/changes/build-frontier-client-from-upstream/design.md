@@ -55,7 +55,7 @@ Build inside `quay.io/pypa/manylinux_2_28_*` (a container image, not an action) 
 ```
 frontier-build.yml (call): checkout pinned FRONTIER_REF -> build static fn-fileget
   (+ libpacparser) in manylinux, per-arch matrix -> upload frontier-runtime_<ver>_<arch>
-  + .frontier-manifest.json {ref, sha, version, arch, glibc_floor}
+  + frontier-manifest.json {ref, sha, version, arch, glibc_floor}
 client.yml (call, rewritten): per-arch -> download runtime, stage into
   pd-cds-api-bin resource dir -> uv build (api selector + bin + cli) ->
   fresh-venv smoke test (install wheel; resolve fn-fileget; run query w/o URL
@@ -71,7 +71,7 @@ Upstream pin lives in a repo variable `FRONTIER_REF` (SHA), so bumping never edi
 Add `scripts/stage-frontier-client.sh` that runs the **same** manylinux build in Docker/Podman (or `gh run download`s the CI runtime artifact) and drops `fn-fileget`+`libpacparser.so` into the `pd-cds-api-bin` resource dir. Wire it as a `uv run` pre-step / task; document that `uv build` needs staging first. `.gitignore` the staged native files; `__init__.py` anchors stay tracked.
 
 ### D8 — Provenance, licensing, security
-Publish `.frontier-manifest.json` as the provenance record, shipped inside each runtime artifact. Signed GitHub attestations are intentionally omitted from the native-build leg so its reusable-workflow call needs no `attestations`/`id-token` grants (reusable permissions are capped by the calling job); revisit if an org-approved attestation path is wanted later. Redistribute `COPYING`/`Fermilab-2009.txt` as license files of `pd-cds-api-bin` (and reference in metadata).
+Publish `frontier-manifest.json` as the provenance record, shipped inside each runtime artifact. Signed GitHub attestations are intentionally omitted from the native-build leg so its reusable-workflow call needs no `attestations`/`id-token` grants (reusable permissions are capped by the calling job); revisit if an org-approved attestation path is wanted later. Redistribute `COPYING`/`Fermilab-2009.txt` as license files of `pd-cds-api-bin` (and reference in metadata).
 
 ## Risks / Trade-offs
 

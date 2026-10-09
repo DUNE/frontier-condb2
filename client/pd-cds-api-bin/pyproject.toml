@@ -19,7 +19,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-pd_cds_api_bin = ["fn-fileget", "libpacparser.so.1", ".frontier-manifest.json"]
+pd_cds_api_bin = ["fn-fileget", "libpacparser.so.1", "frontier-manifest.json"]
 
 [dependency-groups]
 dev = [{ include-group = "lint" }]

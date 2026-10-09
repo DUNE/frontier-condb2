@@ -52,18 +52,29 @@ jobs:
       - name: Read frontier version
         id: ver
         run: |
-          v="$(python3 -c 'import json;print(json.load(open("runtime/.frontier-manifest.json"))["frontier_version"])')"
+          v="$(python3 -c 'import json;print(json.load(open("runtime/frontier-manifest.json"))["frontier_version"])')"
           echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Verify artifact inputs present
+        run: |
+          for f in fn-fileget libpacparser.so.1 frontier-manifest.json; do
+            if [ ! -f "runtime/$f" ]; then
+              echo "::error::runtime/$f missing after build"
+              ls -la runtime/ || true
+              exit 1
+            fi
+          done
 
       - name: Upload runtime artifact
         uses: actions/upload-artifact@v7
         with:
           name: frontier-runtime_${{ steps.ver.outputs.version }}_${{ matrix.arch }}
-          # Explicit file paths: directory expansion uses ** globs, which
-          # silently skip dotfiles like .frontier-manifest.json.
+          # Explicit file paths (upload-artifact globs are unreliable for
+          # dotfiles, which is why the manifest has no leading dot; explicit
+          # paths also make if-no-files-found meaningful per file).
           path: |
             runtime/fn-fileget
             runtime/libpacparser.so.1
-            runtime/.frontier-manifest.json
+            runtime/frontier-manifest.json
           if-no-files-found: error
           retention-days: 90

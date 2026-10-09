@@ -4,7 +4,7 @@ Prebuilt native Frontier client runtime shipped to `pd-cds-api`.
 
 This distribution carries the self-contained `fn-fileget` executable,
 `libpacparser.so.1` (PAC support, loaded via `dlopen` resolved by the binary's
-`$ORIGIN` runpath), and the `.frontier-manifest.json` provenance record.
+`$ORIGIN` runpath), and the `frontier-manifest.json` provenance record.
 
 The binary files are **not committed**. They are produced by
 `scripts/build-frontier-client.sh` (containerized manylinux_2_28 build from a

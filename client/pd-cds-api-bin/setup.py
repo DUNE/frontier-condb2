@@ -11,7 +11,7 @@ PLAT = os.environ.get("FRONTIER_WHEEL_PLAT") or f"manylinux_2_28_{os.uname().mac
 
 _here = os.path.dirname(os.path.abspath(__file__))
 _pkg = os.path.join(_here, "src", "pd_cds_api_bin")
-_missing = [f for f in ("fn-fileget", "libpacparser.so.1", ".frontier-manifest.json")
+_missing = [f for f in ("fn-fileget", "libpacparser.so.1", "frontier-manifest.json")
             if not os.path.isfile(os.path.join(_pkg, f))]
 if _missing:
     msg = (

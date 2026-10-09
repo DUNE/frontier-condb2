@@ -27,7 +27,7 @@ done
 
 check_staged() {
     [[ -x "$DEST/fn-fileget" && -f "$DEST/libpacparser.so.1" \
-        && -f "$DEST/.frontier-manifest.json" ]]
+        && -f "$DEST/frontier-manifest.json" ]]
 }
 
 if [[ "$MODE" == "check" ]]; then
@@ -55,7 +55,7 @@ if [[ "$MODE" == "ci" ]]; then
     tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
     gh run download "$CI_RUN" -R "$(git -C "$REPO_ROOT" remote get-url --push origin)" \
         -n "$artifact" -D "$tmp"
-    cp "$tmp/fn-fileget" "$tmp/libpacparser.so.1" "$tmp/.frontier-manifest.json" "$DEST/"
+    cp "$tmp/fn-fileget" "$tmp/libpacparser.so.1" "$tmp/frontier-manifest.json" "$DEST/"
 else
     ref="${FRONTIER_REF:-$(cat "$REPO_ROOT/FRONTIER_REF" 2>/dev/null || true)}"
     [[ -n "$ref" ]] || { echo "Set FRONTIER_REF (env or ./FRONTIER_REF file)" >&2; exit 1; }
@@ -64,7 +64,7 @@ else
     [[ -n "$ARCH" ]] && args+=(--arch "$ARCH")
     "$REPO_ROOT/scripts/build-frontier-client.sh" "${args[@]}"
     mkdir -p "$DEST"
-    cp "$tmp/fn-fileget" "$tmp/libpacparser.so.1" "$tmp/.frontier-manifest.json" "$DEST/"
+    cp "$tmp/fn-fileget" "$tmp/libpacparser.so.1" "$tmp/frontier-manifest.json" "$DEST/"
 fi
 
 chmod 755 "$DEST/fn-fileget"

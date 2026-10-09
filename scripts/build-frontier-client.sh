@@ -15,7 +15,7 @@
 #   libpacparser.so.1       pacparser shared library used via dlopen
 #   COPYING                 upstream license
 #   Fermilab-2009.txt       upstream attribution
-#   .frontier-manifest.json provenance (ref, sha, version, arch, glibc floor)
+#   frontier-manifest.json provenance (ref, sha, version, arch, glibc floor)
 set -euo pipefail
 
 FRONTIER_REPO="https://github.com/fermitools/frontier"
@@ -159,7 +159,7 @@ build_in_container() {
     printf '{\n  "upstream": "%s",\n  "ref": "%s",\n  "sha": "%s",\n  "frontier_version": "%s",\n  "pacparser_ref": "%s",\n  "arch": "%s",\n  "glibc_floor": "%s",\n  "glibc_build": "%s",\n  "built_at": "%s"\n}\n' \
         "$FRONTIER_REPO" "$REF" "$SHA" "$version" "$PACPARSER_REF" "$arch" "$GLIBC_FLOOR" "$libc" \
         "$(date -u -d "@${BUILD_EPOCH:-$(date +%s)}" +%Y-%m-%dT%H:%M:%SZ)" \
-        > "$OUT/.frontier-manifest.json"
+        > "$OUT/frontier-manifest.json"
 
     echo "==> Done: frontier ${version} (${SHA:0:12}) for ${arch}"
 }
