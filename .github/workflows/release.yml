@@ -2,9 +2,8 @@ name: Create ProtoDUNE-CDB Release
 
 on:
   push:
-    # TEMP (pipeline validation): run the full chain from any branch push.
-    # Restore to [main] once the release pipeline is verified.
-    branches: ["*"]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       publish-target:

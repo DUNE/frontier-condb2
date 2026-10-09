@@ -48,7 +48,7 @@
 
 ## 8. Cross-cutting integration verification
 
-- [ ] 8.1 End-to-end on AlmaLinux 9 for each arch: `pip install pd-cds-cli` from the built wheels, run a real/loopback query, confirm data path works and no `LD_LIBRARY_PATH`/`.so` errors; capture as the acceptance check for the capability.
+- [x] 8.1 End-to-end on AlmaLinux 9 for each arch: `pip install pd-cds-cli` from the built wheels, run a real/loopback query, confirm data path works and no `LD_LIBRARY_PATH`/`.so` errors; capture as the acceptance check for the capability. (Verified 2026-10-09: green multi-arch CI run incl. fresh-venv smoke; local x86_64 AlmaLinux 9 acceptance with real queries + locust perf run passed.)
 - [x] 8.2 Verify reproducibility: rebuild from the same `FRONTIER_REF` and confirm versioned, tagged wheels and matching manifests are produced (no dependence on committed blobs).
 
 ## 9. Post-apply quality & developer-experience work (completed in-session)
