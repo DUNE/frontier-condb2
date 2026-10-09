@@ -39,5 +39,8 @@ make smoke          # install wheels in a throwaway venv, resolve fn-fileget
   building `pd-cds-api-bin` exits with a message pointing at
   `scripts/stage-frontier-client.sh`.
 
-See `client/pd-cds-api-bin/README.md` for the native wheel's contents and
-tagging, and `.github/workflows/` for the CI build pipeline.
+See [`pd-cds-api-bin/README.md`](../pd-cds-api-bin/README.md) for the native
+wheel's contents and tagging, the [root README](../../README.md) for the
+fresh-clone quickstart, and `../../.github/workflows/` for the CI build
+pipeline. CLI: [`pd-cds-cli/README.md`](../pd-cds-cli/README.md) ·
+perf harness: [`tests/perf/README.md`](../../tests/perf/README.md).

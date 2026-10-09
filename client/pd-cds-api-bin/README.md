@@ -16,3 +16,6 @@ Set `FRONTIER_WHEEL_PLAT` to override the platform tag.
 
 Upstream code is (c) Fermilab under the Fermitools BSD license; see `COPYING`
 and `Fermilab-2009.txt`.
+
+Overview and local staging workflow: [root README](../../README.md) ·
+consumer API: [`pd-cds-api`](../pd-cds-api/README.md)
