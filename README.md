@@ -18,8 +18,8 @@ ConDB2 REST backend.
 | `tests/perf/` | Locust perf harness for the client | [README](tests/perf/README.md) |
 | `infra/` | Server-side stack: ConDB2 REST API, Frontier server, compose/quadlet | [Runbook](infra/README.md) |
 | `scripts/` | `build-frontier-client.sh` (containerized native build), `stage-frontier-client.sh` | inline `--help` |
-| `FRONTIER_REF` | Pinned `fermitools/frontier` commit SHA used by `make stage` and CI | — |
-| `VERSION` | Release version (GitHub tag; pyproject versions kept in lockstep) | — |
+| `FRONTIER_REF` | Pinned `fermitools/frontier` commit SHA used by `make stage` and CI | [Releases & maintenance](#releases--maintenance) |
+| `VERSION` | Release version (GitHub tag; pyproject versions kept in lockstep) | [Releases & maintenance](#releases--maintenance) |
 | `.github/workflows/` | `frontier-build.yml` → `client.yml` (wheels, gates, smoke) → `release.yml` (PyPI + GitHub Release), `server.yml` (images) | — |
 
 ## Quickstart (fresh clone → working CLI + perf run)
@@ -85,6 +85,69 @@ make test      # unit tests
 make lint      # ruff
 make smoke     # throwaway venv: install dist/ wheels, resolve fn-fileget, CLI --help
 ```
+
+## Releases & maintenance
+
+### Bumping the pinned Frontier client (`FRONTIER_REF`)
+
+The native `fn-fileget` is built from one commit of
+[fermitools/frontier], pinned in the tracked `FRONTIER_REF` file at the repo
+root. Bumps are ordinary PR changes — `make stage` and CI read the file
+automatically (a repo-level `FRONTIER_REF` variable or a workflow-dispatch
+input can override it for one-off runs, but the file is the source of truth).
+
+1. Get a **full 40-character commit SHA** (branch names are rejected; CI
+   validates the format):
+   - Preferred — a tagged frontier client release: open
+     <https://github.com/fermitools/frontier/tags>, pick the newest
+     client-relevant tag, and copy the commit SHA it points at, e.g.
+     `git ls-remote https://github.com/fermitools/frontier refs/tags/<tag>`.
+   - Or the current tip of the client code: open
+     <https://github.com/fermitools/frontier/commits/master/client> and copy
+     the top commit's full SHA.
+2. Update and validate locally:
+   ```bash
+   echo "<full-sha>" > FRONTIER_REF
+   make stage && make test
+   grep -E 'sha|frontier_version' client/pd-cds-api-bin/src/pd_cds_api_bin/frontier-manifest.json
+   ```
+3. PR the `FRONTIER_REF` change (the staged binaries themselves are
+   gitignored). After merge, confirm the `frontier-runtime_<ver>_<arch>`
+   artifacts' `frontier-manifest.json` records the new SHA.
+
+### Bumping versions / preparing a release
+
+Five files must carry the **same** semver — `VERSION` drives the GitHub tag
+(`vX.Y.Z`) and artifact names, the four `pyproject.toml` files drive the
+published wheel versions:
+
+```
+VERSION
+pyproject.toml                         (workspace root)
+client/pd-cds-api/pyproject.toml
+client/pd-cds-api-bin/pyproject.toml
+client/pd-cds-cli/pyproject.toml
+```
+
+Release procedure:
+
+```bash
+make check-versions                    # guard: everything agrees pre-bump
+# edit all five files to the new version (pick the semver level vs the last release)
+uv lock                                # records member versions in the lockfile
+make check-versions
+make test && make build && make smoke
+# PR -> merge to main: release.yml runs the full chain and cuts GitHub Release vX.Y.Z
+```
+
+Rules for new collaborators:
+
+- **PyPI versions are immutable.** A failed publish mid-upload cannot reuse the
+  same version — bump again and republish.
+- Dry-runs are free: `workflow_dispatch` → `publish-target: testpypi` publishes
+  to TestPyPI (an independent index) and does **not** burn the PyPI number.
+- Publishing stays skipped (not failed) until the `PYPI_API_TOKEN` repo secret
+  exists; TestPyPI uses `TESTPYPI_API_TOKEN`.
 
 ## CI/CD
 

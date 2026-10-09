@@ -30,7 +30,7 @@
 ## 5. CI — frontier build workflow
 
 - [x] 5.1 Create `.github/workflows/frontier-build.yml` (`workflow_call`) building via task 1.4 across an `x86_64`/`aarch64` matrix in manylinux (native `ubuntu-24.04-arm` runner for arm64); verify it uploads per-arch `frontier-runtime_<ver>_<arch>` artifacts.
-- [ ] 5.2 Read the upstream pin from a repo variable `FRONTIER_REF` (no workflow logic edits to bump); verify changing the variable changes the checked-out SHA recorded in the manifest.
+- [x] 5.2 Resolve the upstream pin dynamically (dispatch input → optional repo variable → tracked `FRONTIER_REF` file; team decision: the tracked file is the source of truth for reviewable PR bumps, no workflow edits required). Verified: green multi-arch CI run checked out the SHA from `FRONTIER_REF` with no repo variable set, and `frontier-manifest.json` recorded it.
 - [x] 5.3 Upload `frontier-manifest.json` per arch inside the runtime artifact; verify the manifest is downloadable with the artifact. (GitHub signed attestations deliberately omitted to keep the reusable-call permission chain at `contents: read`.)
 
 ## 6. CI — wheel build + smoke gate

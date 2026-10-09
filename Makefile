@@ -5,7 +5,7 @@
 
 UV ?= uv
 
-.PHONY: stage stage-check build test coverage lint smoke clean
+.PHONY: stage stage-check build test coverage lint smoke check-versions clean
 
 ## Stage the pinned fermitools/frontier build into pd-cds-api-bin (containerized)
 stage:
@@ -43,6 +43,10 @@ smoke: build
 		dist/pd_cds_api-*.whl dist/pd_cds_api_bin-*.whl dist/pd_cds_cli-*.whl
 	/tmp/pd-cds-smoke/bin/python -c "import os; from pd_cds_api.state import ApiClientState; p = ApiClientState().frontier_client_path; assert os.access(p, os.X_OK), p; print('smoke OK:', p)"
 	/tmp/pd-cds-smoke/bin/pd-cds --help > /dev/null && echo "CLI entry point OK"
+
+## Verify VERSION and all pyproject versions agree (run before releasing)
+check-versions:
+	python3 scripts/check-versions.py
 
 clean:
 	rm -rf dist client/*/dist client/*/.venv

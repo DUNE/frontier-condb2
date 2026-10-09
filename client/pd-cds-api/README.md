@@ -32,10 +32,11 @@ make test           # unit tests
 make smoke          # install wheels in a throwaway venv, resolve fn-fileget
 ```
 
-- `FRONTIER_REF` (repo root file) pins the upstream commit SHA. Bump it in a
-  PR; CI and `make stage` both read it (override per-run with the
-  `FRONTIER_REF` env var). The GitHub repo may also define a `FRONTIER_REF`
-  variable, which CI prefers.
+- `FRONTIER_REF` (repo root file) is the source of truth for the upstream
+  commit SHA. Bump it in a PR; CI and `make stage` read it automatically
+  (override per-run with the `FRONTIER_REF` env var locally, or a repo
+  variable / dispatch input in CI). Where to find the SHA and the full
+  procedure: [root README — Releases & maintenance](../../README.md#releases--maintenance).
 - A clean checkout without staged artifacts fails fast with instructions:
   `ApiClientState().frontier_client_path` raises `FileNotFoundError`, and
   building `pd-cds-api-bin` exits with a message pointing at
