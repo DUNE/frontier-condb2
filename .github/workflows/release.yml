@@ -140,10 +140,17 @@ jobs:
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
         run: |
-          gh release create "v${{ needs.read-release-version.outputs.release-version }}" \
-            ./dist/*.zip \
-            --repo="$GITHUB_REPOSITORY" \
-            --target="${{ github.ref_name }}" \
-            --title="v${{ needs.read-release-version.outputs.release-version }}" \
-            --generate-notes
+          if gh release view "$RELEASE_TAG" --repo="$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refreshing assets (--clobber)."
+            gh release upload "$RELEASE_TAG" ./dist/*.zip \
+              --clobber --repo="$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" \
+              ./dist/*.zip \
+              --repo="$GITHUB_REPOSITORY" \
+              --target="${{ github.ref_name }}" \
+              --title="$RELEASE_TAG" \
+              --generate-notes
+          fi
