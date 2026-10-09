@@ -33,6 +33,7 @@ coverage: stage-check
 
 lint:
 	$(UV) run ruff check client/ tests/ scripts/
+	$(UV) run ruff format --check client/ tests/
 
 ## Install built wheels into a throwaway venv and resolve fn-fileget
 smoke: build

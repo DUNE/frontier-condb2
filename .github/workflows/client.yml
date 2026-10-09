@@ -71,10 +71,19 @@ jobs:
           chmod 755 "$dest/fn-fileget"
           scripts/stage-frontier-client.sh --check
 
-      - name: Unit tests
+      - name: Static analysis and type check
         run: |
-          uv sync --group test
-          uv run --no-sync pytest -v
+          uv sync
+          uv run --no-sync ruff check client/ tests/
+          uv run --no-sync ruff format --check client/ tests/
+          uv run --no-sync --with pyright pyright client/
+
+      - name: Unit tests (coverage-gated)
+        run: |
+          uv sync --group test --with pytest-cov
+          uv run --no-sync python -m pytest \
+              --cov=pd_cds_api --cov=pd_cds_cli \
+              --cov-report=term-missing --cov-fail-under=85 -v
 
       - name: Build wheels and sdists
         run: |
