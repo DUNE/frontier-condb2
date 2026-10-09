@@ -10,6 +10,7 @@ strings (they embed dynamic defaults); the function docstrings below provide
 command summaries/descriptions only, so Typer does not compete with them.
 """
 
+import subprocess
 from subprocess import CompletedProcess
 from typing import Annotated, Any
 
@@ -151,14 +152,13 @@ def get_data(
     if data_type is not None:
         conditions.data_type = data_type
 
-    result: CompletedProcess[str] = ApiClientWrapper(
-        conditions=conditions, state=ctx.obj
-    ).get_data()
-
-    if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
-        raise typer.Exit(code=result.returncode)
+    try:
+        result: CompletedProcess[str] = ApiClientWrapper(
+            conditions=conditions, state=ctx.obj
+        ).get_data()
+    except subprocess.CalledProcessError as cpe:
+        print(cpe.stderr)
+        raise typer.Exit(code=cpe.returncode) from None
 
     if ctx.obj.verbose is True:
         print_verbose(ctx, result)

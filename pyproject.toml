@@ -29,6 +29,14 @@ convention = "google"
 "client/*/tests/**" = ["D"]
 "tests/**" = ["D"]
 
+[tool.pytest.ini_options]
+testpaths = ["client"]
+addopts = "-q"
+
+[tool.coverage.report]
+show_missing = true
+precision = 0
+
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
 lint = ["ruff>=0.14.10"]

@@ -645,10 +645,14 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pytest" },
     { name = "ruff" },
 ]
 lint = [
     { name = "ruff" },
+]
+test = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -658,9 +662,12 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ruff", specifier = ">=0.14.10" }]
+dev = [
+    { name = "pytest", specifier = ">=8.4" },
+    { name = "ruff", specifier = ">=0.14.10" },
+]
 lint = [{ name = "ruff", specifier = ">=0.14.10" }]
-test = []
+test = [{ name = "pytest", specifier = ">=8.4" }]
 
 [[package]]
 name = "pd-cds-api-bin"
@@ -692,10 +699,14 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pytest" },
     { name = "ruff" },
 ]
 lint = [
     { name = "ruff" },
+]
+test = [
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -705,9 +716,12 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "ruff", specifier = ">=0.14.10" }]
+dev = [
+    { name = "pytest", specifier = ">=8.4" },
+    { name = "ruff", specifier = ">=0.14.10" },
+]
 lint = [{ name = "ruff", specifier = ">=0.14.10" }]
-test = []
+test = [{ name = "pytest", specifier = ">=8.4" }]
 
 [[package]]
 name = "pluggy"

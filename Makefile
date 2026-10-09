@@ -5,7 +5,7 @@
 
 UV ?= uv
 
-.PHONY: stage stage-check build test lint smoke clean
+.PHONY: stage stage-check build test coverage lint smoke clean
 
 ## Stage the pinned fermitools/frontier build into pd-cds-api-bin (containerized)
 stage:
@@ -21,9 +21,15 @@ build: stage-check
 	cd client/pd-cds-api-bin && $(UV) build --out-dir ../../dist
 	cd client/pd-cds-cli && $(UV) build --out-dir ../../dist
 
-## Unit tests (workspace)
+## Unit tests (all workspace packages; testpaths set in root pyproject)
 test: stage-check
-	$(UV) run --group test pytest client/pd-cds-api/tests -v
+	$(UV) run --group test pytest -v
+
+## Unit tests with statement coverage gate over both client packages
+coverage: stage-check
+	$(UV) run --group test --with pytest-cov python -m pytest \
+		--cov=pd_cds_api --cov=pd_cds_cli --cov-report=term-missing \
+		--cov-fail-under=85
 
 lint:
 	$(UV) run ruff check client/ tests/ scripts/

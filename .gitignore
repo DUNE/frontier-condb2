@@ -26,3 +26,7 @@ pd-cds-data
 client/pd-cds-api-bin/src/pd_cds_api_bin/fn-fileget
 client/pd-cds-api-bin/src/pd_cds_api_bin/libpacparser.so*
 client/pd-cds-api-bin/src/pd_cds_api_bin/frontier-manifest.json
+
+# Coverage data
+.coverage
+.coverage.*

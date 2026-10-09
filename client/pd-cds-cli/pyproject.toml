@@ -20,4 +20,4 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
 lint = ["ruff>=0.14.10"]
-test = []
+test = ["pytest>=8.4"]

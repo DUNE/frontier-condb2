@@ -71,6 +71,11 @@ jobs:
           chmod 755 "$dest/fn-fileget"
           scripts/stage-frontier-client.sh --check
 
+      - name: Unit tests
+        run: |
+          uv sync --group test
+          uv run --no-sync pytest -v
+
       - name: Build wheels and sdists
         run: |
           rm -rf dist && mkdir -p dist
