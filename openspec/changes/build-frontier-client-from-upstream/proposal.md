@@ -27,4 +27,4 @@ The frontier client native code (`fn-fileget`, `libfrontier_client.so`, headers,
 - **Workflows**: rewrite `.github/workflows/client.yml`; new `.github/workflows/frontier-build.yml`; extend `.github/workflows/release.yml` (matrix + PyPI publish).
 - **Packaging**: `client/pd-cds-api/pyproject.toml` and `client/pd-cds-cli/pyproject.toml` (build backend/artifacts, platform tags); root workspace + `uv` build/dev workflow; a `scripts/` staging helper.
 - **Runtime code**: `pd_cds_api/state.py` (`ld_library_path` becomes vestigial for the static binary), `wrapper.py` (subprocess args unchanged), plus `.gitignore`.
-- **Dependencies/tooling**: manylinux image, cross-arch build (qemu or native runners), `uv`, PyPI trusted publishing (OIDC), a `FRONTIER_REF` repo variable.
+- **Dependencies/tooling**: manylinux image, cross-arch build (qemu or native runners), `uv`, PyPI publish via twine + API-token secrets (org policy: official `actions/*` only), a `FRONTIER_REF` repo variable.

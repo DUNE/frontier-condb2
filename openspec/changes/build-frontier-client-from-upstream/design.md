@@ -6,7 +6,7 @@ See `proposal.md - Why` for motivation. Technical constraints observed in-repo t
 
 - **What the runtime needs today:** `ApiClientState` resolves `fn-fileget` via `importlib.resources` anchored at `pd_cds_api.bin` and exports `ld_library_path` = that same dir (`state.py:36-44`); the wrapper sets `LD_LIBRARY_PATH` for the subprocess (`wrapper.py:40-42`). `fn-fileget` is dynamically linked and shows `libfrontier_client.so.2 => not found` unless that dir is on the path.
 - **Upstream build facts** (`bin/Makefile`, unmodifiable — it is vendored from `fermitools/frontier`): version is `FN_VER_MAJOR=2` / `FN_VER_MINOR=10.2`; there is an existing **static** link pattern at `fn-req.static` (`Makefile:296-297`) that links `.libs/*.o` + `$(LIBS)` directly instead of `-lfrontier_client`; pacparser is **`dlopen`'d**, not linked (`Makefile:45`, `pacparser-dlopen.c`), and OpenSSL/zlib/expat are normal dynamic deps (`LIBS`, `Makefile:73`).
-- **Existing CI** (`client.yml`, `release.yml`): builds from an unpinned upstream `master`, uploads the entire `client/` tree to a GitHub Release, and does **not** build or publish any Python wheel. `permissions` already include `id-token`/`attestations` (OIDC-ready for PyPI trusted publishing).
+- **Existing CI** (`client.yml`, `release.yml`): builds from an unpinned upstream `master`, uploads the entire `client/` tree to a GitHub Release, and does **not** build or publish any Python wheel. Organization policy restricts workflow steps to **officially published `actions/*` only** (no third-party marketplace actions).
 - **`uv_build` behavior:** emits pure `py3-none-any` wheels and **excludes git-ignored files** from the wheel by default — both matter once `bin/` becomes a generated artifact.
 
 ## Goals / Non-Goals
@@ -47,7 +47,7 @@ Split the native payload into its own distribution (grpcio/scipy-style):
 - *Why:* `uv_build` cannot set a platform tag; `setuptools`' `--plat-name` is the lowest-friction path to correct PEP 425 tags. *Alt: maturin/cibuildwheel* — heavier than needed (Rust/orchestration-focused); revisit only if wheels grow.
 
 ### D5 — manylinux base + cross-arch via QEMU
-Build inside `quay.io/pypa/manylinux_2_28_*` (glibc 2.28 ≈ RHEL/Alma 8 baseline, comfortably below AlmaLinux 9) for both `x86_64` and `aarch64`, the arm64 leg under `docker/setup-qemu-action` + `--platform linux/arm64` (or a native arm runner if available).
+Build inside `quay.io/pypa/manylinux_2_28_*` (a container image, not an action) (glibc 2.28 ≈ RHEL/Alma 8 baseline, comfortably below AlmaLinux 9) for both `x86_64` and `aarch64`, using the native `ubuntu-24.04` / `ubuntu-24.04-arm` GitHub runners (a qemu-based action would violate the official-actions-only policy; native ARM runners avoid it entirely).
 - *Why:* lowers the floor (user) and standardizes the "not found"/glibc story; manylinux already vendors static OpenSSL/zlib to aid D1.
 - *Alt: build on AlmaLinux 9* — floor too high for wider reuse. *Alt: full cross-compile toolchain* — more complexity than QEMU emulation.
 
@@ -61,7 +61,9 @@ client.yml (call, rewritten): per-arch -> download runtime, stage into
   fresh-venv smoke test (install wheel; resolve fn-fileget; run query w/o URL
   => expect usage/error, not ENOENT) -> upload wheels
 release.yml (extended): matrix across arches -> publish wheels+sdist to PyPI
-  via OIDC trusted publishing; keep GitHub Release for the native bundle
+  via twine + scoped `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets (the
+  official-actions-only policy rules out `pypa/gh-action-pypi-publish`);
+  keep GitHub Release for the native bundle
 ```
 Upstream pin lives in a repo variable `FRONTIER_REF` (SHA), so bumping never edits workflow logic; the frontier version is read from the Makefile, not hardcoded.
 
@@ -83,7 +85,7 @@ Publish `.frontier-manifest.json` and attach SLSA provenance/Cosign attestations
 ## Migration Plan
 
 1. Land packaging + `bin/` removal + anchor change + `uv_build` artifacts in one coordinated PR (keeps tree green because CI now stages).
-2. Add `frontier-build.yml`; rewire `client.yml`; extend `release.yml`; create `FRONTIER_REF` repo variable + PyPI trusted-publisher config.
+2. Add `frontier-build.yml`; rewire `client.yml`; extend `release.yml`; create `FRONTIER_REF` repo variable + `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets.
 3. Cut a release to publish the first multi-arch wheels.
 4. **Rollback:** the previous tagged release (committed `bin/`) remains installable from history; re-enable a bundled-binary path by repointing the anchor if the shim approach must be reverted.
 

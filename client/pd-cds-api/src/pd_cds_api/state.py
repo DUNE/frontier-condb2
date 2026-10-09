@@ -7,20 +7,23 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, HttpUrl, computed_field
 
+_STAGING_HINT = (
+    "Run scripts/stage-frontier-client.sh (local development) or obtain "
+    "wheels built by CI."
+)
+
 
 @cache
 def _resolve_client_path(bin_path: str, client_name: str) -> Path:
-    resource: Traversable = files(anchor=bin_path).joinpath(client_name)
-
-    with as_file(resource) as path:
-        if not os.access(path, mode=os.X_OK):
-            path.chmod(mode=0o755)  # defensive: some install paths lose exec bit
-        return Path(path)
-
-
-@cache
-def _resolve_ld_library_path(bin_path: str) -> str:
-    return str(object=files(anchor=bin_path))
+    try:
+        resource: Traversable = files(anchor=bin_path).joinpath(client_name)
+        with as_file(resource) as path:
+            if not os.access(path, mode=os.X_OK):
+                path.chmod(mode=0o755)  # defensive: some install paths lose exec bit
+            return Path(path)
+    except (ModuleNotFoundError, FileNotFoundError) as exc:
+        msg = f"Frontier client {client_name!r} not found in package {bin_path!r}. {_STAGING_HINT}"
+        raise FileNotFoundError(msg) from exc
 
 
 class ApiClientState(BaseModel):
@@ -28,7 +31,7 @@ class ApiClientState(BaseModel):
         default=HttpUrl(url="http://dunefrontier.fnal.gov:8000/dune_runcon_prod"),
         validate_default=True,
     )
-    bin_path: str = Field(default="pd_cds_api.bin", frozen=True)
+    bin_path: str = Field(default="pd_cds_api_bin", frozen=True)
     cache_proxy_url: HttpUrl = Field(
         default=HttpUrl(url="http://localhost:3128"),
         # default=HttpUrl(url="http://squid.fnal.gov:3128"),
@@ -44,8 +47,3 @@ class ApiClientState(BaseModel):
     @property
     def frontier_client_path(self) -> Path:
         return _resolve_client_path(self.bin_path, self.frontier_client_name)
-
-    @computed_field
-    @property
-    def ld_library_path(self) -> str:
-        return _resolve_ld_library_path(self.bin_path)

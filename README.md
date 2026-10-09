@@ -269,7 +269,10 @@ This repository contains the code and documentation related to the installation,
   127.0.0.1 - - [03/Dec/2025:14:00:26.785 -0700] "GET http://fermicloud725.fnal.gov:8000/dune_runcon_prod/Frontier/type=frontier_file:1:DEFAULT&encoding=BLOB&p1=get%253ffolder%253dpdunesp.test%2526t%253d23300 HTTP/1.1" 200 1091 TCP_HIT:HIER_NONE 0 "test -" "-" "curl/7.76.1"
   ```
 
-## Local Frontier Client Build and Basic Query Testing
+ ## Local Frontier Client Build and Basic Query Testing
+
+***Note: This section describes the manual upstream build used for stack bring-up. The Python client packages do NOT use this flow — see [Python Client Development](#python-client-development) for the automated, pinned build that produces `pd-cds-api-bin`.***
+
 
 ***Note: The Frontier client code build was done using GCC 14.2.1 on an AlmaLinux 9 system. The following reflects the system configuration needed to build the code.***
 
@@ -338,3 +341,30 @@ This repository contains the code and documentation related to the installation,
   - The response from the above query will dump a CSV file with a name reflecting the `filepath` that you provided in the CLI call; E.g., `'get?folder=pdunesp.run_conditionstest&t=28650'`.
     - Change the filename to `<something>.csv`.
     - Open the file and you should see the query results in CSV format.
+
+## Python Client Development
+
+The Python client (`pd-cds-api`, `pd-cds-api-bin`, `pd-cds-cli`) never ships
+committed native binaries. `fn-fileget` is built reproducibly from the
+fermitools/frontier revision pinned in the repo-root `FRONTIER_REF` file, in a
+`manylinux_2_28` container (podman/docker), statically linked (frontier objects
++ OpenSSL + libstdc++), and packaged as per-arch wheels
+(`py3-none-manylinux_2_28_{x86_64,aarch64}`). pacparser (`libpacparser.so.1`)
+is staged next to the binary and found via its `$ORIGIN` runpath — no
+`LD_LIBRARY_PATH` anywhere.
+
+```bash
+make stage   # container build at the pinned FRONTIER_REF -> pd-cds-api-bin
+make build   # wheels + sdists into dist/
+make test    # unit tests
+make smoke   # fresh venv install of dist/ wheels, resolves fn-fileget
+```
+
+- Bump the upstream pin by editing `FRONTIER_REF` (SHA) in a PR; `scripts/
+  stage-frontier-client.sh` and CI both honor it.
+- `scripts/stage-frontier-client.sh --from-ci <run-id>` downloads a CI-built
+  runtime instead of compiling locally.
+- CI/CD: `.github/workflows/frontier-build.yml` (native build matrix) →
+  `client.yml` (staging, wheel build, auditwheel gate, smoke) →
+  `release.yml` (PyPI publish + GitHub Release assets). See
+  `client/pd-cds-api/README.md` and `client/pd-cds-api-bin/README.md`.

@@ -1,4 +1,3 @@
-import os
 import subprocess
 from collections.abc import Sequence
 from functools import cached_property
@@ -37,9 +36,6 @@ class ApiClientWrapper:
     def _invoke(
         state: ApiClientState, queries: Sequence[str]
     ) -> subprocess.CompletedProcess[str]:
-        env: dict[str, str] = os.environ.copy()
-        env["LD_LIBRARY_PATH"] = state.ld_library_path
-
         args: list[str] = [
             str(state.frontier_client_path),
             *_TTL_FLAGS[state.frontier_ttl],
@@ -50,7 +46,6 @@ class ApiClientWrapper:
 
         return subprocess.run(
             args=args,
-            env=env,
             capture_output=True,
             check=True,
             shell=False,

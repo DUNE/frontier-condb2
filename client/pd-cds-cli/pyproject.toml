@@ -1,11 +1,14 @@
 [project]
 name = "pd-cds-cli"
-version = "0.1.1"
+version = "0.2.0"
 description = "ProtoDUNE Conditions Data Service Client CLI"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
 requires-python = ">=3.14"
 dependencies = ["pd-cds-api", "typer>=0.21.1"]
+
+[project.scripts]
+pd-cds = "pd_cds_cli.main:app"
 
 [tool.uv.sources]
 pd-cds-api = { workspace = true }

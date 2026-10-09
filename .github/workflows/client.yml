@@ -6,46 +6,114 @@ on:
       release-version:
         required: true
         type: string
+      frontier-ref:
+        description: fermitools/frontier commit SHA (empty -> FRONTIER_REF resolution)
+        required: false
+        type: string
+        default: ""
 
 permissions:
-  contents: write
-  packages: write
-  attestations: write
-  id-token: write
+  contents: read
 
 jobs:
-  build-and-upload-frontier-client:
-    runs-on: ubuntu-latest
-    container:
-      image: almalinux:9
-      options: --privileged
+  frontier-runtime:
+    uses: ./.github/workflows/frontier-build.yml
+    with:
+      frontier-ref: "${{ inputs.frontier-ref }}"
+
+  build-wheels:
+    needs: frontier-runtime
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runs_on: ubuntu-24.04
+            plat: manylinux_2_28_x86_64
+          - arch: aarch64
+            runs_on: ubuntu-24.04-arm
+            plat: manylinux_2_28_aarch64
+    name: wheels (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs_on }}
 
     steps:
-      - name: Checkout pacparser repository
+      - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          repository: "manugarg/pacparser"
 
-      - name: Install build dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+
+      - name: Download frontier runtime (${{ matrix.arch }})
+        uses: actions/download-artifact@v8
+        with:
+          pattern: frontier-runtime_*_${{ matrix.arch }}
+          merge-multiple: true
+          path: native/
+
+      - name: Stage native runtime into pd-cds-api-bin
         run: |
-          dnf update -y && dnf clean all
-          dnf install git -y
-          dnf groupinstall "Development Tools" -y
-          dnf install openssl-devel zlib-devel expat expat-devel -y
-          make -C src
-          make -C src install
+          dest=client/pd-cds-api-bin/src/pd_cds_api_bin
+          cp native/fn-fileget native/libpacparser.so.1 native/.frontier-manifest.json "$dest/"
+          chmod 755 "$dest/fn-fileget"
+          scripts/stage-frontier-client.sh --check
 
-      - name: Checkout Frontier client repository
-        uses: actions/checkout@v7
-        with:
-          repository: "fermitools/frontier"
-          sparse-checkout: client/
+      - name: Build wheels and sdists
+        run: |
+          rm -rf dist && mkdir -p dist
+          for pkg in pd-cds-api pd-cds-api-bin pd-cds-cli; do
+            (cd "client/$pkg" && FRONTIER_WHEEL_PLAT="${{ matrix.plat }}" uv build --out-dir ../../dist)
+          done
 
-      - name: Build Frontier client
-        run: cd client && make
+      - name: Gate wheel contents and platform tags
+        run: |
+          set -euo pipefail
+          uvx check-wheel-contents dist/*.whl
 
-      - name: Archive and upload Frontier client
+          bin_wheel="$(ls dist/pd_cds_api_bin-*.whl)"
+          # Filename must carry this job's exact platform tag (no mis-tagged uploads).
+          case "$bin_wheel" in
+            *"-py3-none-${{ matrix.plat }}.whl") ;;
+            *) echo "ERROR: unexpected bin wheel name: $bin_wheel" >&2; exit 1 ;;
+          esac
+
+          # auditwheel show: non-zero exit means the ELF deps violate the tag.
+          report="$(uvx auditwheel show "$bin_wheel")"
+          echo "$report"
+          # A "constrains the platform tag to manylinux_2_NN" note is acceptable
+          # iff NN <= the claimed floor (conservative). Reject over-claims.
+          claimed_nn="${{ matrix.plat }}"; claimed_nn="${claimed_nn##manylinux_2_}"
+          if grep -q "constrains the platform tag" <<<"$report"; then
+            reported_nn="$(sed -n 's/.*constrains the platform tag to manylinux_2_\([0-9]\+\).*/\1/p' <<<"$report")"
+            if [ -n "$reported_nn" ] && [ "$reported_nn" -gt "$claimed_nn" ]; then
+              echo "ERROR: wheel needs glibc 2.$reported_nn but claims manylinux_2_$claimed_nn" >&2
+              exit 1
+            fi
+          fi
+
+      - name: Smoke test (fresh venv install, resolve and run fn-fileget)
+        run: |
+          uv venv .venv-smoke
+          uv pip install --python .venv-smoke/bin/python dist/*.whl
+          .venv-smoke/bin/python - <<'EOF'
+          import os
+          from pd_cds_api.state import ApiClientState
+          p = ApiClientState().frontier_client_path
+          assert os.access(p, os.X_OK), f"not executable: {p}"
+          r = os.spawnv(os.P_WAIT, str(p), [str(p)])  # no args -> usage error, never ENOENT
+          assert r != 127, "fn-fileget failed to execute (missing interpreter/loader?)"
+          print("smoke OK:", p)
+          EOF
+          .venv-smoke/bin/pd-cds --help > /dev/null
+          echo "CLI entry point OK"
+
+      - name: Upload wheel artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: frontier-client-v${{ inputs.release-version }}
-          path: client/
+          name: pd-cds-wheels-${{ matrix.arch }}
+          path: dist/
+          if-no-files-found: error

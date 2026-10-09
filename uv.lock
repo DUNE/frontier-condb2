@@ -6,6 +6,7 @@ requires-python = ">=3.14"
 members = [
     "pd-cds",
     "pd-cds-api",
+    "pd-cds-api-bin",
     "pd-cds-cli",
 ]
 
@@ -598,7 +599,7 @@ wheels = [
 
 [[package]]
 name = "pd-cds"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "pd-cds-cli" },
@@ -607,6 +608,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "locust" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 lint = [
@@ -614,6 +616,7 @@ lint = [
 ]
 test = [
     { name = "locust" },
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -622,16 +625,21 @@ requires-dist = [{ name = "pd-cds-cli", editable = "client/pd-cds-cli" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "locust", specifier = ">=2.43.0" },
+    { name = "pytest", specifier = ">=8.4" },
     { name = "ruff", specifier = ">=0.14.10" },
 ]
 lint = [{ name = "ruff", specifier = ">=0.14.10" }]
-test = [{ name = "locust", specifier = ">=2.43.0" }]
+test = [
+    { name = "locust", specifier = ">=2.43.0" },
+    { name = "pytest", specifier = ">=8.4" },
+]
 
 [[package]]
 name = "pd-cds-api"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "client/pd-cds-api" }
 dependencies = [
+    { name = "pd-cds-api-bin" },
     { name = "pydantic" },
 ]
 
@@ -644,7 +652,10 @@ lint = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.13.5" }]
+requires-dist = [
+    { name = "pd-cds-api-bin", editable = "client/pd-cds-api-bin" },
+    { name = "pydantic", specifier = ">=2.13.5" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "ruff", specifier = ">=0.14.10" }]
@@ -652,8 +663,27 @@ lint = [{ name = "ruff", specifier = ">=0.14.10" }]
 test = []
 
 [[package]]
+name = "pd-cds-api-bin"
+version = "0.2.0"
+source = { editable = "client/pd-cds-api-bin" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+lint = [
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.14.10" }]
+lint = [{ name = "ruff", specifier = ">=0.14.10" }]
+
+[[package]]
 name = "pd-cds-cli"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "client/pd-cds-cli" }
 dependencies = [
     { name = "pd-cds-api" },
