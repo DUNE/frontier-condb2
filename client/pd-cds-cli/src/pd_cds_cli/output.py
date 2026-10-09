@@ -25,8 +25,11 @@ def print_verbose(ctx: typer.Context, result: CompletedProcess) -> None:
     table = Table(title=options_table_title, style="grey50")
     table.add_column(header="Option", style="bright_cyan", no_wrap=True)
     table.add_column(header="Value", style="bright_magenta", no_wrap=True)
+    # Keep rows in sync with the settable ApiClientState fields exposed as
+    # global options in main.py.
     table.add_row("--api-server-url", f"{ctx.obj.api_server_url}")
     table.add_row("--cache-proxy-url", f"{ctx.obj.cache_proxy_url}")
+    table.add_row("--ttl", f"{ctx.obj.frontier_ttl}")
     table.add_row("--verbose, -v", f"{ctx.obj.verbose}")
     padded_table = Padding(renderable=table, pad=1)
 

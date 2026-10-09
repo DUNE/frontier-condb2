@@ -60,7 +60,10 @@ uv run pd-cds -v get-data pdunesp.run_conditionstest --t0 25034
 uv run pd-cds get-data pdunesp.run_conditionstest --t0 25100 --t1 25115
 ```
 
-Results land in `./pd-cds-data/<folder>-t_<t0>.csv`. Full reference:
+Results land in `./pd-cds-data/<folder>-t_<t0>.csv`. The Frontier cache
+time-to-live defaults to level `2` (normal server cache duration); `--ttl 3`
+(or `FRONTIER_TTL=3`) asks the cache to keep immutable historical ranges
+forever, `--ttl 1` requests a fresh fetch. Full reference:
 [client/pd-cds-cli/README.md](client/pd-cds-cli/README.md).
 
 ### 2. Run the Locust perf tests

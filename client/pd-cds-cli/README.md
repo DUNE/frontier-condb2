@@ -26,6 +26,7 @@ pip install pd-cds-cli        # pulls pd-cds-api + per-arch pd-cds-api-bin
 |---|---|---|
 | `--api-server-url` | `CONDB_API_SERVER_URL` | `http://dunefrontier.fnal.gov:8000/dune_runcon_prod` |
 | `--cache-proxy-url` | `FRONTIER_CACHE_PROXY_URL` | `http://localhost:3128` |
+| `--ttl` (1–3) | `FRONTIER_TTL` | `2` — Frontier cache time-to-live: `1`=short (fresh), `2`=default, `3`=forever |
 | `-v`, `--verbose` | — | off (rich panel with resolved options + stdout) |
 
 ## `get-data`
@@ -53,6 +54,9 @@ uv run pd-cds -v get-data pdunesp.run_conditionstest --t0 25034
 
 # time range
 uv run pd-cds get-data pdunesp.run_conditionstest --t0 25100 --t1 25115
+
+# immutable historical data: ask the cache to keep it forever
+uv run pd-cds --ttl 3 get-data pdunesp.run_conditionstest --t0 25034
 
 # JSON via a test server, bypassing the local cache
 uv run pd-cds --api-server-url http://fermicloud725.fnal.gov:8000/dune_runcon_prod \

@@ -30,6 +30,16 @@ def main(
             help=f"(Optional) Frontier Cache Proxy URL - Default: {ApiClientState().cache_proxy_url}",
         ),
     ] = None,
+    ttl: Annotated[
+        int | None,
+        typer.Option(
+            "--ttl",
+            min=1,
+            max=3,
+            envvar="FRONTIER_TTL",
+            help=f"(Optional) Frontier cache time-to-live: 1=short, 2=default, 3=forever - Default: {ApiClientState().frontier_ttl}",
+        ),
+    ] = None,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -46,6 +56,8 @@ def main(
         overrides["api_server_url"] = api_server_url
     if cache_proxy_url is not None:
         overrides["cache_proxy_url"] = cache_proxy_url
+    if ttl is not None:
+        overrides["frontier_ttl"] = ttl
 
     ctx.obj = ApiClientState(**overrides)
 
