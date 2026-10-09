@@ -86,17 +86,17 @@ This repository contains the code and documentation related to the installation,
   - This allows for requests to be handled by the `frontier-tomcat` servlet.
   - In the OpenStack dashboard go to `Network > Security Groups`.
     - Click the "Create Security Group" button.
-    ![Alt text](./docs/images/create_sec_group.png "Create Security Group Button")
+    ![Alt text](../docs/images/create_sec_group.png "Create Security Group Button")
     - Give the group a name and optional description. We used `internal-tomcat`.
     - Once the security group has been created, delete the "Egress" rules.
     - Then add two "Ingress" rules; one for IPv4 and one for IPv6.
-    ![Alt text](./docs/images/sec_group_rules.png "Security Group Rules")
+    ![Alt text](../docs/images/sec_group_rules.png "Security Group Rules")
   - This security group now needs to be added to your FermiCloud instance.
     - Find your instance on the "Instances" view.
     - Select "Edit Security Groups" from the "Actions" dropdown menu.
-    ![Alt text](./docs/images/edit_sec_group.png "Edit Instance Security Groups")
+    ![Alt text](../docs/images/edit_sec_group.png "Edit Instance Security Groups")
     - Add the security group to the list of "Instance Security Groups and save it.
-    ![Alt text](./docs/images/add_instance_sec_group.png "Instance Security Groups")
+    ![Alt text](../docs/images/add_instance_sec_group.png "Instance Security Groups")
 
 ### Connection Testing
 
