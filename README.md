@@ -142,6 +142,9 @@ make test && make build && make smoke
 
 Rules for new collaborators:
 
+- CI enforces the lockstep: the wheels job's static-analysis step runs
+  `scripts/check-versions.py`, so a drifted release fails before anything is
+  built or published.
 - **PyPI versions are immutable.** A failed publish mid-upload cannot reuse the
   same version — bump again and republish.
 - Dry-runs are free: `workflow_dispatch` → `publish-target: testpypi` publishes

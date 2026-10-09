@@ -73,6 +73,7 @@ jobs:
 
       - name: Static analysis and type check
         run: |
+          python3 scripts/check-versions.py
           uv sync
           uv run --no-sync ruff check client/ tests/
           uv run --no-sync ruff format --check client/ tests/
