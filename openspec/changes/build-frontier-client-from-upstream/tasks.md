@@ -2,14 +2,14 @@
 
 ## 1. Native build recipe (static fn-fileget + pacparser, no upstream fork)
 
-- [x] 1.1 Write a build recipe that, from a `fermitools/frontier` `client/` checkout, runs `make` and then links `fn-fileget` from `fn-fileget.o` + `.libs/*.o` against static OpenSSL/zlib/expat (mirroring `fn-req.static`, `Makefile:296-297`), and verify with `ldd` that the result needs no `libfrontier_client.so`.
+- [x] 1.1 Write a build recipe that, from a `fermitools/frontier` `client/` checkout, runs the needed upstream make targets and then links `fn-fileget` from `fn-fileget.o` + `.libs/*.o` against a vendored static OpenSSL 3.0 with `-static-libstdc++ -static-libgcc` (zlib/expat stay dynamic; object-link pattern mirrors `fn-req.static`, `Makefile:296-297`), and verify with `ldd` that the result needs no `libfrontier_client.so`.
 - [x] 1.2 Link `fn-fileget` with `-Wl,-rpath,'$ORIGIN'` and stage `libpacparser.so.1` beside it; verify PAC resolution works from the co-located lib with `LD_LIBRARY_PATH` unset (spec: self-contained executable).
 - [x] 1.3 Capture the frontier version (`FN_VER_MAJOR.MINOR` from the Makefile) and the pinned upstream SHA into `frontier-manifest.json`; verify the manifest fields are populated from the actual build.
 - [x] 1.4 Wrap the above as a container-runnable build (Docker/Podman) parameterized by `FRONTIER_REF` and target arch; verify it produces `fn-fileget`, `libpacparser.so.1`, licenses, and the manifest in an output dir.
 
 ## 2. Packaging restructure (selector + binary distribution + anchor)
 
-- [x] 2.1 Add a new `client/pd-cds-api-bin` distribution (setuptools) whose package data carries `fn-fileget`, `libpacparser.so.1`, and license files; verify a `--plat-name manylinux_2_28_<arch>` build emits a non-pure, correctly-tagged wheel.
+- [x] 2.1 Add a new `client/pd-cds-api-bin` distribution (setuptools) whose package data carries `fn-fileget`, `libpacparser.so.1`, and license files; verify a build emits a correctly platform-tagged `py3-none-manylinux_2_28_<arch>` wheel (nvidia-style root layout; see design D4) that passes `check-wheel-contents` and `auditwheel show`.
 - [x] 2.2 Change `ApiClientState.bin_path`/`frontier_client_path` anchor to resolve the executable from the `pd-cds-api-bin` resource package and reduce `ld_library_path` to vestigial/no-op for the static binary (`state.py:36-44`); verify `ApiClientState().frontier_client_path` yields an executable path in a staged environment.
 - [x] 2.3 Add `pd-cds-api-bin` as a dependency of `pd-cds-api` and confirm the wrapper still builds/invokes `fn-fileget` unchanged (`wrapper.py` subprocess args); verify `run_query` command construction tests still pass.
 - [x] 2.4 Configure `pd-cds-api` `uv_build` with `[tool.uv.build-backend] artifacts` so the tracked anchor `bin/__init__.py` and any generated, git-ignored native files are handled per intent; verify `uv build` includes/excludes exactly the expected files (`unzip -l` the wheel).
@@ -29,7 +29,7 @@
 
 ## 5. CI — frontier build workflow
 
-- [x] 5.1 Create `.github/workflows/frontier-build.yml` (`workflow_call`) building via task 1.4 across an `x86_64`/`aarch64` matrix in manylinux (QEMU for arm64); verify it uploads per-arch `frontier-runtime_<ver>_<arch>` artifacts.
+- [x] 5.1 Create `.github/workflows/frontier-build.yml` (`workflow_call`) building via task 1.4 across an `x86_64`/`aarch64` matrix in manylinux (native `ubuntu-24.04-arm` runner for arm64); verify it uploads per-arch `frontier-runtime_<ver>_<arch>` artifacts.
 - [ ] 5.2 Read the upstream pin from a repo variable `FRONTIER_REF` (no workflow logic edits to bump); verify changing the variable changes the checked-out SHA recorded in the manifest.
 - [x] 5.3 Upload `frontier-manifest.json` per arch inside the runtime artifact; verify the manifest is downloadable with the artifact. (GitHub signed attestations deliberately omitted to keep the reusable-call permission chain at `contents: read`.)
 

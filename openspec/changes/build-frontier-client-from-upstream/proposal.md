@@ -25,6 +25,6 @@ The frontier client native code (`fn-fileget`, `libfrontier_client.so`, headers,
 
 - **Removed**: `client/pd-cds-api/src/pd_cds_api/bin/` native sources/objects/`fn-fileget`/`.so` (all but `__init__.py`).
 - **Workflows**: rewrite `.github/workflows/client.yml`; new `.github/workflows/frontier-build.yml`; extend `.github/workflows/release.yml` (matrix + PyPI publish).
-- **Packaging**: `client/pd-cds-api/pyproject.toml` and `client/pd-cds-cli/pyproject.toml` (build backend/artifacts, platform tags); root workspace + `uv` build/dev workflow; a `scripts/` staging helper.
-- **Runtime code**: `pd_cds_api/state.py` (`ld_library_path` becomes vestigial for the static binary), `wrapper.py` (subprocess args unchanged), plus `.gitignore`.
-- **Dependencies/tooling**: manylinux image, cross-arch build (qemu or native runners), `uv`, PyPI publish via twine + API-token secrets (org policy: official `actions/*` only), a `FRONTIER_REF` repo variable.
+- **Packaging**: new `client/pd-cds-api-bin` distribution (setuptools, platform-tagged wheels); `client/pd-cds-api/pyproject.toml` and `client/pd-cds-cli/pyproject.toml` (dependency, artifacts, console-script relocation); root workspace + `uv` build/dev workflow + `Makefile`; a `scripts/` build + staging helper pair.
+- **Runtime code**: `pd_cds_api/state.py` (anchor moved to the bin package; `ld_library_path` removed as a no-op for the static binary), `wrapper.py` (no env injection), plus `.gitignore`.
+- **Dependencies/tooling**: manylinux image, cross-arch build (native x86_64 + ARM GitHub runners), `uv`, PyPI publish via twine + API-token secrets (org policy: official `actions/*` only), a `FRONTIER_REF` repo variable.
