@@ -57,7 +57,9 @@ frontier-build.yml (call): checkout pinned FRONTIER_REF -> build static fn-fileg
   (+ libpacparser) in manylinux, per-arch matrix -> upload frontier-runtime_<ver>_<arch>
   + frontier-manifest.json {ref, sha, version, arch, glibc_floor}
 client.yml (call, rewritten): per-arch -> download runtime, stage into
-  pd-cds-api-bin resource dir -> uv build (api selector + bin + cli) ->
+  pd-cds-api-bin resource dir -> static gates (ruff check + format --check,
+  pyright) + coverage-gated unit tests (pytest --cov-fail-under=85) ->
+  uv build (api selector + bin + cli) ->
   fresh-venv smoke test (install wheel; resolve fn-fileget; run query w/o URL
   => expect usage/error, not ENOENT) -> upload wheels
 release.yml (extended): matrix across arches -> publish wheels+sdist to PyPI
@@ -95,5 +97,5 @@ Publish `frontier-manifest.json` as the provenance record, shipped inside each r
 
 ## Open Questions
 
-- Exact glibc floor: `manylinux_2_28` (RHEL8) vs a still-lower `2_17` for legacy EL7 — resolvable post-implementation without changing specs.
-- Whether to also publish `py3-none-any` sdists for the bin package (source-less) — packaging detail, not behavior.
+- ~~Exact glibc floor: `manylinux_2_28` (RHEL8) vs a still-lower `2_17` for legacy EL7~~ — deferred to the `evaluate-lower-glibc-floor` roadmap stub; `2_28` ships (auditwheel reports the actual floor as `2_26`, so the tag is conservative).
+- ~~Whether to also publish `py3-none-any` sdists for the bin package~~ — resolved: `uv build` emits sdists for all three distributions and the twine step uploads `wheels/*` (sdists included).

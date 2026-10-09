@@ -51,7 +51,18 @@
 - [ ] 8.1 End-to-end on AlmaLinux 9 for each arch: `pip install pd-cds-cli` from the built wheels, run a real/loopback query, confirm data path works and no `LD_LIBRARY_PATH`/`.so` errors; capture as the acceptance check for the capability.
 - [x] 8.2 Verify reproducibility: rebuild from the same `FRONTIER_REF` and confirm versioned, tagged wheels and matching manifests are produced (no dependence on committed blobs).
 
+## 9. Post-apply quality & developer-experience work (completed in-session)
+
+- [x] 9.1 Expose `frontier_ttl` in the CLI: global `--ttl` (1/2/3, `FRONTIER_TTL` envvar, typer range validation), verbose-panel row; verified `--ttl 3` -> `-R`, `FRONTIER_TTL=1` -> `-r`, out-of-range exits 2.
+- [x] 9.2 Fix CLI failure handling: catch `subprocess.CalledProcessError` in `get-data` (clean stderr + `typer.Exit(returncode)`), remove the now-unreachable `returncode != 0` block; verified by `test_client_failure_exits_cleanly` (no traceback).
+- [x] 9.3 Google-style docstrings across the public interface + pydantic `Field(description=…)` + `pd_cds_api` re-exports/`__all__`; enable ruff `D` (google convention) workspace-wide with test exemptions; verified ruff clean, pyright 0 errors, descriptions flow to `model_json_schema()`.
+- [x] 9.4 Unit-test both client packages: 51 tests, 100% statement coverage (spy fixtures, parametrized matrices, negative validation); root pytest/coverage config + `make coverage`; verified via `make coverage` gate.
+- [x] 9.5 Wire quality gates into CI: ruff lint/format, pyright, coverage-gated pytest step in `client.yml` per-arch (after staging); fix `uv sync --with` misuse by locking `pytest-cov` in the root test group; verified locally + actionlint clean.
+- [x] 9.6 Interim docs restructure: root README hub with fresh-clone quickstart, runbook `git mv`'d to `infra/README.md` (banner + relative image links repointed), filled CLI README, added `tests/perf/README.md`; verified all relative links/anchors resolve.
+- [x] 9.7 Bump `VERSION` + all pyproject versions to 0.2.0 for first pipeline validation (prior `v0.1.0`/`v0.1.1` tags already exist).
+- [x] 9.8 Capture deferred recommendations as eight `skip_specs` OpenSpec roadmap stubs (Tier 1 in-process client, Tier 3 caching, server image attestation, server component tests, docs-tooling migration, PR static gate, CLI timestamp/format quirks, glibc-floor evaluation); verified each passes `openspec validate --strict`.
+
 ## Workflow follow-up
 
-- Review the change with maintainers; resolve design Open Questions (glibc floor `2_28` vs `2_17`) if a wider target is desired before or shortly after archive.
+- Review the change with maintainers; the glibc-floor question now lives in the `evaluate-lower-glibc-floor` stub — resolve there if a wider target is desired.
 - Archive the change once the first multi-arch release is published and the acceptance check (8.1) passes.
