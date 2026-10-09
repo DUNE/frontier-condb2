@@ -21,4 +21,5 @@ The user stated the current hub-and-spoke README layout is an intentional stopga
 
 ## Impact
 
-Repo layout (`docs/`), root/package READMEs, a new docs workflow, `uv` dev group (mkdocs deps). Source: explicit user intent during the docs restructure.
+`docs/` layout (repo root `.gitignore` already anticipates `site/`), root/package READMEs, a new docs workflow, `uv` dev group (mkdocs deps). **Coordination constraint:** GitHub Pages hosts one site per repo; the `distribute-wheels-via-github-pages` change reserves the `/simple/**` path on the shared `gh-pages` branch (design D1 there) — the docs deploy must target other paths on that branch (or its own composed artifact), never replace the site wholesale.
+ Source: explicit user intent during the docs restructure.
