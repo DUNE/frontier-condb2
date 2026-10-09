@@ -59,6 +59,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: read-release-version
     uses: ./.github/workflows/server.yml
+    # server.yml declares these scopes at its workflow level; reusable-workflow
+    # permissions are capped by the calling job, so grant them here.
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
     with:
       release-version: "${{ needs.read-release-version.outputs.release-version }}"
     secrets: inherit

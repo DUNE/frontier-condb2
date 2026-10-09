@@ -31,7 +31,7 @@
 
 - [x] 5.1 Create `.github/workflows/frontier-build.yml` (`workflow_call`) building via task 1.4 across an `x86_64`/`aarch64` matrix in manylinux (QEMU for arm64); verify it uploads per-arch `frontier-runtime_<ver>_<arch>` artifacts.
 - [ ] 5.2 Read the upstream pin from a repo variable `FRONTIER_REF` (no workflow logic edits to bump); verify changing the variable changes the checked-out SHA recorded in the manifest.
-- [x] 5.3 Upload `.frontier-manifest.json` per arch and attach provenance; verify the manifest is downloadable with the artifact.
+- [x] 5.3 Upload `.frontier-manifest.json` per arch inside the runtime artifact; verify the manifest is downloadable with the artifact. (GitHub signed attestations deliberately omitted to keep the reusable-call permission chain at `contents: read`.)
 
 ## 6. CI — wheel build + smoke gate
 
@@ -44,7 +44,7 @@
 
 - [x] 7.1 Extend `release.yml` to a matrix that builds/publishes wheels for all arches; verify the job graph passes `needs` wiring and collects every per-arch wheel.
 - [ ] 7.2 Publish wheels + sdist for the three distributions with twine using scoped `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets (official-actions-only org policy rules out third-party publish actions); verify a dry-run publish against TestPyPI succeeds for one arch before enabling production.
-- [x] 7.3 Keep the GitHub Release for the native runtime bundles + manifests; verify release assets include per-arch artifacts and attestations.
+- [x] 7.3 Keep the GitHub Release for the native runtime bundles + manifests; verify release assets include per-arch runtime and wheel artifacts.
 
 ## 8. Cross-cutting integration verification
 

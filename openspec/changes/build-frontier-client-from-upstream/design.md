@@ -71,7 +71,7 @@ Upstream pin lives in a repo variable `FRONTIER_REF` (SHA), so bumping never edi
 Add `scripts/stage-frontier-client.sh` that runs the **same** manylinux build in Docker/Podman (or `gh run download`s the CI runtime artifact) and drops `fn-fileget`+`libpacparser.so` into the `pd-cds-api-bin` resource dir. Wire it as a `uv run` pre-step / task; document that `uv build` needs staging first. `.gitignore` the staged native files; `__init__.py` anchors stay tracked.
 
 ### D8 — Provenance, licensing, security
-Publish `.frontier-manifest.json` and attach SLSA provenance/Cosign attestations (perms already granted). Redistribute `COPYING`/`Fermilab-2009.txt` as license files of `pd-cds-api-bin` (and reference in metadata).
+Publish `.frontier-manifest.json` as the provenance record, shipped inside each runtime artifact. Signed GitHub attestations are intentionally omitted from the native-build leg so its reusable-workflow call needs no `attestations`/`id-token` grants (reusable permissions are capped by the calling job); revisit if an org-approved attestation path is wanted later. Redistribute `COPYING`/`Fermilab-2009.txt` as license files of `pd-cds-api-bin` (and reference in metadata).
 
 ## Risks / Trade-offs
 

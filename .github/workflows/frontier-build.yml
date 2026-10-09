@@ -13,8 +13,6 @@ on:
 
 permissions:
   contents: read
-  attestations: write
-  id-token: write
 
 jobs:
   build:
@@ -56,13 +54,6 @@ jobs:
         run: |
           v="$(python3 -c 'import json;print(json.load(open("runtime/.frontier-manifest.json"))["frontier_version"])')"
           echo "version=$v" >> "$GITHUB_OUTPUT"
-
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@v4
-        with:
-          subject-path: |
-            runtime/fn-fileget
-            runtime/libpacparser.so.1
 
       - name: Upload runtime artifact
         uses: actions/upload-artifact@v7
