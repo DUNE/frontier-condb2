@@ -28,6 +28,7 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "client/*/tests/**" = ["D"]
 "tests/**" = ["D"]
+"scripts/tests/**" = ["D"]
 
 [tool.pytest.ini_options]
 testpaths = ["client"]

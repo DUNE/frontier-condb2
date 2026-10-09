@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       publish-target:
-        description: "PyPI target for this run (production releases via push always use PyPI)"
+        description: "PyPI target for manual runs (push-publishing is skipped without PYPI_API_TOKEN — institutionally blocked; the Pages /simple/ index is the primary channel)"
         type: choice
         options: [pypi, testpypi, none]
         default: testpypi
@@ -63,10 +63,14 @@ jobs:
     secrets: inherit
 
   publish-python-packages:
-    # Production PyPI publishes only while PYPI_API_TOKEN exists (skip, not
-    # fail, during bring-up); manual runs can target TestPyPI for dry runs.
-    # Requires repo secrets: PYPI_API_TOKEN and TESTPYPI_API_TOKEN
-    # (PyPI API tokens scoped to pd-cds-api, pd-cds-api-bin, pd-cds-cli).
+    # DORMANT channel, kept green-skippable on purpose: institutional
+    # constraints block publishing to pypi.org (possibly permanently), so
+    # PYPI_API_TOKEN is intentionally absent and push runs skip this job.
+    # The GitHub Pages /simple/ index (deployed by pages.yml) is the
+    # primary distribution channel. If that stance ever changes, adding the
+    # PYPI_API_TOKEN repo secret activates this job unchanged; TestPyPI
+    # dry-runs use TESTPYPI_API_TOKEN (tokens scoped to the three
+    # pd-cds-* distributions).
     if: >-
       (github.event_name == 'push' && needs.release-gates.outputs.pypi-token-set == 'true') ||
       (github.event_name == 'workflow_dispatch' && inputs.publish-target != 'none')
@@ -137,6 +141,16 @@ jobs:
           path: dist/
           skip-decompress: true
 
+      # Unpacked wheels+sdists as *individual* release assets (design D4):
+      # direct pin-able URLs and the inputs the PEP 503 index enumerates.
+      # Cross-arch sdists share filenames; merge-multiple keeps one copy.
+      - name: Download wheel artifacts (unpacked)
+        uses: actions/download-artifact@v8
+        with:
+          pattern: pd-cds-wheels-*
+          path: dist-wheels/
+          merge-multiple: true
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -154,3 +168,12 @@ jobs:
               --title="$RELEASE_TAG" \
               --generate-notes
           fi
+
+      - name: Attach unpacked wheels and sdists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
+        run: |
+          ls dist-wheels/
+          gh release upload "$RELEASE_TAG" dist-wheels/*.whl dist-wheels/*.tar.gz \
+            --clobber --repo="$GITHUB_REPOSITORY"

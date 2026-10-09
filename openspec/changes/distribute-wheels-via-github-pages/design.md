@@ -16,14 +16,15 @@ See proposal.md for motivation. Pipeline facts this builds on: every release run
 
 ## Decisions
 
-### D1 — Pages source: `gh-pages` branch with path partition, not Actions-artifact deploy
-GitHub allows one source per site. `actions/upload-pages-artifact`-style deploys **replace the entire site per run** — the future `adopt-python-docs-tooling` change would clobber the index and vice-versa. Decision: enable Pages from branch `gh-pages` (root `/`), and partition paths: this change owns `/simple/**`; docs tooling will later own `/docs/**` or `/`. Each feature contributes git commits to disjoint directories via plain `git push` with the default `GITHUB_TOKEN` (`permissions: contents: write`) — official-actions-only holds (no `peaceiris/actions-gh-pages`; git commands are steps, not actions).
-- *Alt:* single composed deploy job shared by both features — couples two lifecycles; rejected. *Alt:* keep Pages for docs only and host the index elsewhere — no other host available.
+### D1 — Pages source: GitHub Actions with one composed deployer (supersedes branch-partition plan; 2026-10-09)
+GitHub allows one source per site, and Actions-mode deploys **replace the entire site per run**. The user enabled Pages with **GitHub Actions** build-and-deploy (2026-10-09), and `adopt-python-docs-tooling` (Zensical) documents Actions as its publishing path — the original plan (branch `gh-pages` + per-feature `git push` to disjoint dirs) is dead as a *source mechanism*. Decision: keep the path partition (`/simple/**` = this change; everything else = docs) but enforce it *inside* one composed deployer: `.github/workflows/pages.yml` (owned by the docs change) builds the docs tree at `/` and then runs this change's generator in stateless `--from-releases` mode into `site/simple/`, uploading one artifact. Clobbering becomes structurally impossible — there is exactly one writer; official-actions-only holds. Release freshness via `workflow_run` on `release.yml` completion (see docs change D3 for triggers/concurrency).
+- *Alt (original):* Pages from branch `gh-pages`, each feature `git push`ing disjoint dirs — rejected by the user's Pages-mode choice; Zensical has no `gh-deploy`-style branch publisher either. *Alt:* `gh-pages` branch as private storage, each producer pushes then deploys the whole branch as artifact — hidden state, push/deploy double-race, two publishers of different snapshots; rejected. *Alt:* host the index elsewhere — no other host available.
 
-### D2 — Index generator: stdlib script, incremental by default, API rebuild as repair
+### D2 — Index generator: stdlib script, API rebuild as production mode, incremental for local dev
 `scripts/build_simple_index.py`:
-- **Incremental mode (default, runs on release):** inputs = unpacked `wheels/` from the current run + the existing `simple/` tree on `gh-pages`; emits `simple/index.html` + `simple/<normalized-name>/index.html`; each artifact link points at `https://github.com/<org>/<repo>/releases/download/<tag>/<file>#sha256=<digest>` (digests computed from the local files; sha256 fragments per PEP 503). Names normalized PEP 503 (`pd-cds-api`, dir form identical). Same-version reruns dedupe by href → idempotency.
-- **Rebuild mode (`--from-releases`):** enumerates all releases via the GitHub REST API using `GITHUB_TOKEN`, rewrites the whole tree — the drift/corruption repair path and the initial seed.
+- **Rebuild mode (`--from-releases`) — production path since D1's amendment:** invoked by `pages.yml` on every Pages deploy; enumerates all releases via the GitHub REST API using `GITHUB_TOKEN`, writes the whole tree to `--site-out <dir>` (new flag; default `simple/`). Asset sha256s prefer the releases-API `assets[].digest` field; fall back to downloading assets only when absent. Stateless — no prior tree needed, which is exactly what a whole-site-replace deployer requires.
+- **Incremental mode (kept for local/dev use):** inputs = unpacked `wheels/` dir + tag + optional existing tree; merges rather than rewrites. Same-version reruns dedupe by href → idempotency.
+- Both modes emit `<out>/index.html` + `<out>/<normalized-name>/index.html`; each artifact link points at `https://github.com/<org>/<repo>/releases/download/<tag>/<file>#sha256=<digest>` (sha256 fragments per PEP 503). Names normalized PEP 503 (`pd-cds-api`, dir form identical).
 - Pure stdlib (`hashlib`, `urllib`, `html`); unit-tested with fixture filenames + golden HTML.
 
 ### D3 — Install UX must use extra-index, not replacement index
@@ -32,21 +33,21 @@ The Pages index hosts only our three projects; dependencies (`typer`, `pydantic`
 ### D4 — Release asset attachment piggybacks on the existing `release` job
 After the idempotent create/update block: `gh release upload "$TAG" dist-wheels/*.whl dist-wheels/*.tar.gz --clobber`, sourced from an extra *unpacked* download of `pd-cds-wheels-*` (merge-multiple). Cross-arch sdists share filenames with equivalent content — last-wins under `--clobber`, accepted. Direct-URL assets then exist even for consumers who never touch the index.
 
-### D5 — New `distribute-python-index` job in `release.yml`
-Runs on `push:main` and `workflow_dispatch` (no token dependency — unlike the publish job), `needs: [read-release-version, build-and-upload-client-artifacts]`, `permissions: contents: write`: checkout → unpacked wheel artifacts → fetch-or-create `gh-pages` (orphan branch bootstrap on first run) → run generator incremental → `git commit` (skip-if-no-change) → `git push`. Dispatch input `rebuild=true` runs D2 rebuild mode instead.
+### D5 — Index deployment rides `pages.yml`; no dedicated release job (supersedes `distribute-python-index`)
+Under composed-deploy D1 there is nothing for `release.yml` to publish: every `pages.yml` deploy regenerates `/simple/**` statelessly from releases (D2 rebuild), and `release.yml` already ends by attaching the per-file assets (D4) that the generator enumerates. The original job (gh-pages bootstrap, incremental run, git commit/push) is deleted; freshness edge = `workflow_run` trigger on `release.yml` completion (docs change D3). Repair path = the existing `workflow_dispatch` on `pages.yml` — no separate `rebuild` input needed since rebuild is now the only production mode.
 
 ## Risks / Trade-offs
 
-- **Org may block Pages or Actions branch pushes to new branches** → Probe first (task 1.2) before building on it; fallback if blocked: commit the index tree under an in-repo `pages/` branch *or* keep direct-URL assets only (D4 still delivers Tier 1).
-- **Index links depend on releases never being deleted** → policy note in docs; rebuild mode recovers consistency.
+- **Pages deploy permissions untested on this org** (branch-push probe is moot under Actions source) → first `pages.yml` dispatch (docs change, task 4.2) exercises `pages: write` + `deploy-pages`; if blocked, D4 direct-URL assets still deliver Tier 1 standalone.
+- **Index links depend on releases never being deleted** → policy note in docs; stateless rebuild mode is the automatic recovery path (every deploy re-derives from releases).
 - **pip default-keyring / index precedence surprises** → documented extra-index patterns (D3) and a CI-verified copy-paste doc test (task 4).
-- **gh-pages merge conflicts (docs + index jobs)** → disjoint paths make textual conflicts essentially impossible; push retries once on non-fast-forward.
+- **Concurrent Pages deploys racing (docs push + release completion)** → single `concurrency: pages` group in `pages.yml` serializes; each deploy is a full stateless composition, so the later run always publishes a complete correct site.
 - **sdist-only consumers** (audit workflows that prefer sdists) get our platform-agnostic sdists; `pd-cds-api-bin` sdist intentionally fails to rebuild without staging — accepted (wheels are the supported path; documented).
 
 ## Migration Plan
 
-1. Prereq: enable Pages → branch `gh-pages`, `/` (repo Settings) — user action.
-2. Merge the change; run `workflow_dispatch` with `rebuild=true` to seed the index from `v0.2.0` forward.
+1. Prereq: ~~branch `gh-pages`~~ → Pages source = GitHub Actions — done by user 2026-10-09.
+2. Merge this change (generator + D4 assets) together with `adopt-python-docs-tooling`; the first `pages.yml` deploy seeds the index from `v0.2.0` forward as part of the composed site.
 3. Verify install matrix (task 4), publish docs URLs. Rollback = disable Pages; assets (D4) remain harmless.
 
 ## Open Questions

@@ -7,11 +7,11 @@ Institutional constraints block publishing to pypi.org, so `pip install pd-cds-c
 ## What Changes
 
 - Generate a PEP 503 simple index (`simple/<package>/index.html` with `#sha256=` fragments) covering all published releases of `pd-cds-api`, `pd-cds-api-bin`, `pd-cds-cli`, built by CI from existing release assets.
-- Deploy the index to GitHub Pages as part of the release flow (idempotent, full-rebuild capable), at `https://<org>.github.io/<repo>/simple/`.
+- Publish the index to GitHub Pages at `https://<org>.github.io/<repo>/simple/` from the single composed Pages deployer (`pages.yml`, owned by `adopt-python-docs-tooling`; stateless full-rebuild every deploy, release-completion-triggered refresh) — amended per design D1 after the user enabled Pages in Actions mode.
 - Attach **unpacked wheel/sdist files** as individual GitHub Release assets (direct, pin-able URLs; enables install without the index and air-gapped mirroring).
 - The existing twine → PyPI publish path remains, but becomes an optional secondary channel: Pages distribution must not depend on PyPI tokens being set.
 - Documentation: canonical install instructions for pip, uv (project `[[tool.uv.index]]` / `uv tool install`), and pipx; README release rules updated.
-- Prerequisites noted: Pages enabled for the repo (user-owned action, planned alongside the docs-tooling migration); this change ships the index independent of any docs site.
+- Prerequisites: Pages enabled for the repo with **GitHub Actions** source — user action, **done 2026-10-09**. The index ships independent of the docs *content* but deploys inside the docs change's composed `pages.yml` (design D1).
 
 ## Capabilities
 
@@ -24,6 +24,6 @@ Institutional constraints block publishing to pypi.org, so `pip install pd-cds-c
 ## Impact
 
 - `.github/workflows/release.yml` (new distribution job; Pages deploy permissions), possibly a small companion workflow for manual re-seed.
-- New `scripts/` index generator (stdlib-only, official-actions-only constraint respected: index deploy uses `git push` to a Pages branch or `actions/upload-pages-artifact`+`deploy-pages`).
+- New `scripts/` index generator (stdlib-only, official-actions-only constraint respected: deployment happens via the docs change's `pages.yml` `upload-pages-artifact`+`deploy-pages` composition — no Pages branch, no third-party actions).
 - `client/pd-cds-cli/README.md`, `client/pd-cds-api/README.md`, root `README.md` install sections.
-- Coordination constraint with the future `adopt-python-docs-tooling` change: both want GitHub Pages — see design (single Pages source decision).
+- Coordination with `adopt-python-docs-tooling` resolved (design D1 amendment): single composed Pages deployer owned by the docs change; this change supplies `scripts/build_simple_index.py` and the release assets it enumerates.

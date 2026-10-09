@@ -5,7 +5,7 @@
 
 UV ?= uv
 
-.PHONY: stage stage-check build test coverage lint smoke check-versions clean
+.PHONY: stage stage-check build test test-scripts coverage lint smoke check-versions clean
 
 ## Stage the pinned fermitools/frontier build into pd-cds-api-bin (containerized)
 stage:
@@ -24,6 +24,10 @@ build: stage-check
 ## Unit tests (all workspace packages; testpaths set in root pyproject)
 test: stage-check
 	$(UV) run --group test pytest -v
+
+## Index-generator unit tests (stdlib-only; no staged runtime needed)
+test-scripts:
+	$(UV) run --group test pytest -v scripts/tests
 
 ## Unit tests with statement coverage gate over both client packages
 coverage: stage-check
