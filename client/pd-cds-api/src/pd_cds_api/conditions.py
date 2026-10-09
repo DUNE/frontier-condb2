@@ -16,14 +16,10 @@ class RunConditions(BaseModel):
     """
 
     folder: str = Field(
-        description=(
-            "Conditions folder path, e.g. ``pdunesp.run_conditionstest``."
-        ),
+        description=("Conditions folder path, e.g. ``pdunesp.run_conditionstest``."),
     )
     t0: int | float = Field(
-        description=(
-            "Beginning timestamp, or sole timestamp when ``t1`` is unset."
-        ),
+        description=("Beginning timestamp, or sole timestamp when ``t1`` is unset."),
     )
     t1: int | float | None = Field(
         default=None,

@@ -39,14 +39,20 @@ class TestDefaults:
     def test_moves_result_into_data_dir(self, runner, spy) -> None:
         invoke(runner, GET)
         assert spy.calls[2][0] == "mv"
-        assert spy.calls[2][2].startswith("pd-cds-data/pdunesp.run_conditionstest-t_25034")
+        assert spy.calls[2][2].startswith(
+            "pd-cds-data/pdunesp.run_conditionstest-t_25034"
+        )
 
 
 class TestGlobalOptions:
     def test_server_url_override_reaches_connect_string(self, runner, spy) -> None:
         invoke(
             runner,
-            ["--api-server-url", "http://fermicloud725.fnal.gov:8000/dune_runcon_prod", *GET],
+            [
+                "--api-server-url",
+                "http://fermicloud725.fnal.gov:8000/dune_runcon_prod",
+                *GET,
+            ],
         )
         assert connect(spy).startswith(
             "(serverurl=http://fermicloud725.fnal.gov:8000/dune_runcon_prod)"
@@ -63,7 +69,9 @@ class TestGlobalOptions:
         invoke(runner, ["--ttl", ttl, *GET])
         assert expected in client_call(spy)
 
-    @pytest.mark.parametrize("ttl", ["0", "4", "99"], ids=["below", "above", "way-above"])
+    @pytest.mark.parametrize(
+        "ttl", ["0", "4", "99"], ids=["below", "above", "way-above"]
+    )
     def test_ttl_out_of_range_exits_two(self, runner, spy, ttl) -> None:
         result = invoke(runner, ["--ttl", ttl, *GET])
         assert result.exit_code == 2
@@ -99,7 +107,9 @@ class TestCommandOptions:
             runner,
             ["get-data", "a.b", "--t0", "1", "--t1", "9", "--dt", "gain", "-f", "json"],
         )
-        assert "get?folder=a.b&t0=1.0&t1=9.0&data_type=gain&format=json" in client_call(spy)
+        assert "get?folder=a.b&t0=1.0&t1=9.0&data_type=gain&format=json" in client_call(
+            spy
+        )
 
 
 class TestVerbose:

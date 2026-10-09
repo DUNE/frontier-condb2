@@ -30,9 +30,7 @@ class ApiClient:
         names = ", ".join(self._request_name(c) for c in conditions)
         return self._timed_request(
             name=f"batch[{len(conditions)}] {names}",
-            call=lambda: ApiClientWrapper.run_queries(
-                conditions, state=self._state
-            ),
+            call=lambda: ApiClientWrapper.run_queries(conditions, state=self._state),
         )
 
     def _timed_request(

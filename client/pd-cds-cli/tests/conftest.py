@@ -16,7 +16,9 @@ class SpyRun:
         self.calls: list[list[str]] = []
         self.side_effect: Exception | None = None
 
-    def __call__(self, args: Sequence[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    def __call__(
+        self, args: Sequence[str], **kwargs
+    ) -> subprocess.CompletedProcess[str]:
         self.calls.append(list(args))
         if self.side_effect is not None:
             raise self.side_effect

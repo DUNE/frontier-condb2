@@ -49,9 +49,12 @@ so warmed runs should show high `TCP_HIT` rates in the Squid access log).
 Edit the module-level constants at the top of `locustfile.py`:
 
 ```python
-STATE = ApiClientState(format=None, frontier_ttl=3,
-                       api_server_url="http://fermicloud725.fnal.gov:8000/dune_runcon_prod",
-                       cache_proxy_url="http://localhost:3128")
+STATE = ApiClientState(
+    format=None,
+    frontier_ttl=3,
+    api_server_url="http://fermicloud725.fnal.gov:8000/dune_runcon_prod",
+    cache_proxy_url="http://localhost:3128",
+)
 FOLDER = "pdunesp.run_conditionstest"
 ```
 

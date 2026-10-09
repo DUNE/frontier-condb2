@@ -15,7 +15,9 @@ from pd_cds_api.conditions import RunConditions
 from pd_cds_api.state import ApiClientState
 from pd_cds_api.wrapper import ApiClientWrapper
 
-result = ApiClientWrapper(conditions=RunConditions(folder="pdunesp.run_conditionstest", t0=25034)).run_query()
+result = ApiClientWrapper(
+    conditions=RunConditions(folder="pdunesp.run_conditionstest", t0=25034)
+).run_query()
 ```
 
 ## Local development
