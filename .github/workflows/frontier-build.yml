@@ -59,6 +59,11 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: frontier-runtime_${{ steps.ver.outputs.version }}_${{ matrix.arch }}
-          path: runtime/
+          # Explicit file paths: directory expansion uses ** globs, which
+          # silently skip dotfiles like .frontier-manifest.json.
+          path: |
+            runtime/fn-fileget
+            runtime/libpacparser.so.1
+            runtime/.frontier-manifest.json
           if-no-files-found: error
           retention-days: 90
