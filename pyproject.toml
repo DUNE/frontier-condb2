@@ -17,6 +17,18 @@ members = ["client/*"]
 requires = ["uv_build>=0.9.22,<0.10.0"]
 build-backend = "uv_build"
 
+[tool.ruff.lint]
+# E4/E7/E9/F are ruff's defaults; D (pydocstyle) enforces docstrings on the
+# public interface of the client packages (see per-file-ignores).
+select = ["E4", "E7", "E9", "F", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"client/*/tests/**" = ["D"]
+"tests/**" = ["D"]
+
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
 lint = ["ruff>=0.14.10"]

@@ -1,3 +1,5 @@
+"""Rich terminal rendering for ``pd-cds --verbose`` output."""
+
 from subprocess import CompletedProcess
 
 import typer
@@ -11,6 +13,18 @@ from rich.text import Text
 
 
 def print_verbose(ctx: typer.Context, result: CompletedProcess) -> None:
+    """Render the resolved CLI options and the command's stdout.
+
+    Draws two panels: a table of the global options currently active on the
+    context's ``ApiClientState``, and the raw stdout captured from the
+    native-client run.
+
+    Args:
+        ctx: The active Typer context whose ``obj`` is an
+            :class:`pd_cds_api.ApiClientState`.
+        result: The :class:`subprocess.CompletedProcess` returned by
+            :meth:`pd_cds_api.ApiClientWrapper.get_data`.
+    """
     details_panel_title_text = Text(
         text=f"Command Details: <{ctx.command_path}>", style="bright_yellow"
     )

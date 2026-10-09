@@ -1,3 +1,15 @@
+"""``pd-cds`` command-line interface.
+
+Defines the Typer application: the callback builds an
+:class:`pd_cds_api.ApiClientState` from the global options (each option also
+reads a matching environment variable), and the ``get-data`` command fetches
+conditions data via :class:`pd_cds_api.ApiClientWrapper`.
+
+Note: parameter help intentionally lives in the ``typer.Option(help=...)``
+strings (they embed dynamic defaults); the function docstrings below provide
+command summaries/descriptions only, so Typer does not compete with them.
+"""
+
 from subprocess import CompletedProcess
 from typing import Annotated, Any
 
@@ -49,6 +61,12 @@ def main(
         ),
     ] = False,
 ) -> None:
+    """ProtoDUNE Conditions Data Service client.
+
+    Global options must appear before the subcommand. They may also be set
+    via environment variables (CONDB_API_SERVER_URL,
+    FRONTIER_CACHE_PROXY_URL, FRONTIER_TTL).
+    """
     overrides: dict[str, Any] = {}
     overrides["verbose"] = verbose
 
@@ -115,6 +133,13 @@ def get_data(
         ),
     ] = None,
 ) -> None:
+    """Retrieve run-conditions data for a folder and time point or range.
+
+    The result is written under ./pd-cds-data/ as
+    <folder>-t_<t0>.<format> (point query) or
+    <folder>-t0_<t0>-t1_<t1>.<format> (range query). A failed native-client
+    call prints its error output and exits non-zero.
+    """
     if format is not None:
         ctx.obj.format = format
 

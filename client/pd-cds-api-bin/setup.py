@@ -1,3 +1,9 @@
+"""Build script for the pd-cds-api-bin native runtime distribution.
+
+A data-only wheel with an explicit PEP 425 platform tag; the payload files
+are staged by scripts/stage-frontier-client.sh (or CI) before building.
+"""
+
 import os
 
 from setuptools import setup
@@ -32,6 +38,7 @@ class PlatformWheel(bdist_wheel):
     """
 
     def finalize_options(self) -> None:
+        """Pin the wheel tag to py3-none-<platform> after base finalization."""
         super().finalize_options()
         self.python_tag = "py3"
         self.abi_tag = "none"
