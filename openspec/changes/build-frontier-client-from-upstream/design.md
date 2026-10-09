@@ -57,15 +57,18 @@ frontier-build.yml (call): checkout pinned FRONTIER_REF -> build static fn-fileg
   (+ libpacparser) in manylinux, per-arch matrix -> upload frontier-runtime_<ver>_<arch>
   + frontier-manifest.json {ref, sha, version, arch, glibc_floor}
 client.yml (call, rewritten): per-arch -> download runtime, stage into
-  pd-cds-api-bin resource dir -> static gates (ruff check + format --check,
-  pyright) + coverage-gated unit tests (pytest --cov-fail-under=85) ->
+  pd-cds-api-bin resource dir -> static gates (check-versions lockstep,
+  ruff check + format --check, pyright) + coverage-gated unit tests
+  (pytest --cov-fail-under=85) ->
   uv build (api selector + bin + cli) ->
   fresh-venv smoke test (install wheel; resolve fn-fileget; run query w/o URL
   => expect usage/error, not ENOENT) -> upload wheels
 release.yml (extended): matrix across arches -> publish wheels+sdist to PyPI
   via twine + scoped `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets (the
   official-actions-only policy rules out `pypa/gh-action-pypi-publish`);
-  keep GitHub Release for the native bundle
+  keep GitHub Release for the native bundle; release step is idempotent
+  (gh release view || create; else gh release upload --clobber) so
+  post-release dispatches stay green
 ```
 Upstream pin lives in the tracked `FRONTIER_REF` file (full commit SHA) — the team's chosen source of truth, so bumps are reviewable PRs and never edit workflow logic; the frontier version is read from the Makefile, not hardcoded. Resolution order (workflow-dispatch input → optional repo variable → tracked file) keeps file-based operation the default. Documented for collaborators in the root README "Releases & maintenance" section, with `scripts/check-versions.py` (`make check-versions`) guarding VERSION/pyproject lockstep at release time. The `release.yml → server.yml` call leg was later trimmed to the scopes `server.yml` actually uses (`contents`/`packages: write`; the never-exercised `attestations`/`id-token` declarations were removed — image attestation, if wanted, becomes a dedicated follow-up change).
 

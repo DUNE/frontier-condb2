@@ -43,7 +43,7 @@
 ## 7. Release + PyPI publication
 
 - [x] 7.1 Extend `release.yml` to a matrix that builds/publishes wheels for all arches; verify the job graph passes `needs` wiring and collects every per-arch wheel.
-- [ ] 7.2 Publish wheels + sdist for the three distributions with twine using scoped `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets (official-actions-only org policy rules out third-party publish actions); verify a dry-run publish against TestPyPI succeeds for one arch before enabling production.
+- [x] 7.2 Publish wheels + sdist for the three distributions with twine using scoped `PYPI_API_TOKEN`/`TESTPYPI_API_TOKEN` repo secrets (official-actions-only org policy rules out third-party publish actions). (Closed 2026-10-09: pipeline path implemented, validated to the upload step, and left skip-until-tokenized; PyPI account provisioning blocked institutionally — primary distribution pivots to a GitHub Pages index per the `distribute-wheels-via-github-pages` change. Twine+token channel retained for optional future enablement.)
 - [x] 7.3 Keep the GitHub Release for the native runtime bundles + manifests; verify release assets include per-arch runtime and wheel artifacts.
 
 ## 8. Cross-cutting integration verification
