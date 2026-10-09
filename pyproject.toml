@@ -1,25 +1,43 @@
 [project]
-name = "frontier-condb2"
-version = "0.1.0"
-description = "Add your description here"
+name = "pd-cds"
+version = "0.2.0"
+description = "ProtoDUNE Conditions Data Service"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
 requires-python = ">=3.14"
-dependencies = ["typer>=0.21.1"]
+dependencies = ["pd-cds-cli"]
 
-[project.scripts]
-frontier-condb2 = "frontier_condb2.main:app"
-# locust = "locust -f tests/perf/locustfile.py"
+[tool.uv.sources]
+pd-cds-cli = { workspace = true }
+
+[tool.uv.workspace]
+members = ["client/*"]
 
 [build-system]
 requires = ["uv_build>=0.9.22,<0.10.0"]
 build-backend = "uv_build"
 
+[tool.ruff.lint]
+# E4/E7/E9/F are ruff's defaults; D (pydocstyle) enforces docstrings on the
+# public interface of the client packages (see per-file-ignores).
+select = ["E4", "E7", "E9", "F", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"client/*/tests/**" = ["D"]
+"tests/**" = ["D"]
+
+[tool.pytest.ini_options]
+testpaths = ["client"]
+addopts = "-q"
+
+[tool.coverage.report]
+show_missing = true
+precision = 0
+
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
-lint = [
-    "ruff>=0.14.10",
-]
-test = [
-    "locust>=2.43.0",
-]
+lint = ["ruff>=0.14.10"]
+test = ["locust>=2.43.0", "pytest>=8.4", "pytest-cov>=6"]

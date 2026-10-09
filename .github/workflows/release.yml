@@ -4,14 +4,32 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      publish-target:
+        description: "PyPI target for this run (production releases via push always use PyPI)"
+        type: choice
+        options: [pypi, testpypi, none]
+        default: testpypi
 
 permissions:
   contents: write
   packages: write
-  attestations: write
-  id-token: write
 
 jobs:
+  release-gates:
+    # secrets context is unavailable in job-level if; surface presence as outputs.
+    runs-on: ubuntu-latest
+    outputs:
+      pypi-token-set: ${{ steps.probe.outputs.pypi }}
+    steps:
+      - name: Probe publish secrets
+        id: probe
+        env:
+          PYPI: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          if [ -n "$PYPI" ]; then echo "pypi=true" >> "$GITHUB_OUTPUT"; else echo "pypi=false" >> "$GITHUB_OUTPUT"; fi
+
   read-release-version:
     runs-on: ubuntu-latest
     outputs:
@@ -19,10 +37,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          sparse-checkout: |
-            VERSION
+          sparse-checkout: VERSION
 
       - name: Read VERSION file
         id: release-version
@@ -36,13 +53,62 @@ jobs:
     secrets: inherit
 
   build-and-upload-server-artifacts:
+    # Restricted to main/manual runs: branch validation pushes must not
+    # repush :latest images to GHCR from unmerged code.
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: read-release-version
     uses: ./.github/workflows/server.yml
     with:
       release-version: "${{ needs.read-release-version.outputs.release-version }}"
     secrets: inherit
 
+  publish-python-packages:
+    # Production PyPI publishes only while PYPI_API_TOKEN exists (skip, not
+    # fail, during bring-up); manual runs can target TestPyPI for dry runs.
+    # Requires repo secrets: PYPI_API_TOKEN and TESTPYPI_API_TOKEN
+    # (PyPI API tokens scoped to pd-cds-api, pd-cds-api-bin, pd-cds-cli).
+    if: >-
+      (github.event_name == 'push' && needs.release-gates.outputs.pypi-token-set == 'true') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish-target != 'none')
+    needs:
+      - read-release-version
+      - release-gates
+      - build-and-upload-client-artifacts
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (github.event_name == 'workflow_dispatch' && inputs.publish-target == 'testpypi') && 'testpypi' || 'pypi' }}
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Download all wheel artifacts (unpacked)
+        uses: actions/download-artifact@v8
+        with:
+          pattern: pd-cds-wheels-*
+          path: wheels/
+          merge-multiple: true
+
+      - name: Publish to PyPI (${{ (github.event_name == 'workflow_dispatch' && inputs.publish-target == 'testpypi') && 'TestPyPI' || 'PyPI' }})
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: >-
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.publish-target == 'testpypi')
+                && secrets.TESTPYPI_API_TOKEN || secrets.PYPI_API_TOKEN }}
+          TWINE_REPOSITORY_URL: >-
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.publish-target == 'testpypi')
+                && 'https://test.pypi.org/legacy/' || 'https://upload.pypi.org/legacy/' }}
+        run: |
+          python -m pip install --upgrade pip twine
+          twine check wheels/*
+          twine upload --non-interactive --verbose wheels/*
+
   release:
+    # GitHub Release creation restricted to main/manual runs so branch
+    # validation pushes exercise the build chain without publishing tags.
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs:
       - read-release-version
       - build-and-upload-client-artifacts
@@ -50,13 +116,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create server-dist directory
-        run: mkdir -p server-dist
-
-      - name: Download client artifacts
+      - name: Download client artifacts (frontier runtimes + wheel bundles, as zips)
         uses: actions/download-artifact@v8
         with:
-          name: "frontier-client-v${{ needs.read-release-version.outputs.release-version }}"
+          pattern: frontier-runtime_*
+          path: dist/
+          skip-decompress: true
+
+      - name: Download wheel artifacts (as zips)
+        uses: actions/download-artifact@v8
+        with:
+          pattern: pd-cds-wheels-*
           path: dist/
           skip-decompress: true
 
@@ -70,10 +140,17 @@ jobs:
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
         run: |
-          gh release create "v${{ needs.read-release-version.outputs.release-version }}" \
-            ./dist/*.zip \
-            --repo="$GITHUB_REPOSITORY" \
-            --target="${{ github.ref_name }}" \
-            --title="v${{ needs.read-release-version.outputs.release-version }}" \
-            --generate-notes
+          if gh release view "$RELEASE_TAG" --repo="$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refreshing assets (--clobber)."
+            gh release upload "$RELEASE_TAG" ./dist/*.zip \
+              --clobber --repo="$GITHUB_REPOSITORY"
+          else
+            gh release create "$RELEASE_TAG" \
+              ./dist/*.zip \
+              --repo="$GITHUB_REPOSITORY" \
+              --target="${{ github.ref_name }}" \
+              --title="$RELEASE_TAG" \
+              --generate-notes
+          fi

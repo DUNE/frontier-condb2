@@ -1,0 +1,26 @@
+[project]
+name = "pd-cds-api-bin"
+version = "0.2.0"
+description = "Prebuilt self-contained Frontier client native runtime (fn-fileget) for pd-cds-api"
+readme = "README.md"
+authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
+requires-python = ">=3.14"
+license = "BSD-3-Clause"
+license-files = ["COPYING", "Fermilab-2009.txt"]
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pd_cds_api_bin = ["fn-fileget", "libpacparser.so.1", "frontier-manifest.json"]
+
+[dependency-groups]
+dev = [{ include-group = "lint" }]
+lint = ["ruff>=0.14.10"]

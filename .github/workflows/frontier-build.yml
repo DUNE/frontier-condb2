@@ -1,0 +1,80 @@
+name: Build Frontier Client Native Runtime
+
+on:
+  workflow_call:
+    inputs:
+      frontier-ref:
+        description: >-
+          fermitools/frontier commit SHA. Empty -> $FRONTIER_REF repo variable
+          -> pinned ./FRONTIER_REF file in the repository.
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runs_on: ubuntu-24.04
+          - arch: aarch64
+            runs_on: ubuntu-24.04-arm
+    name: frontier runtime (${{ matrix.arch }})
+    runs-on: ${{ matrix.runs_on }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Resolve pinned frontier ref
+        id: ref
+        env:
+          INPUT_REF: ${{ inputs.frontier-ref }}
+          VAR_REF: ${{ vars.FRONTIER_REF }}
+        run: |
+          ref="${INPUT_REF:-${VAR_REF:-$(cat FRONTIER_REF | tr -d '[:space:]')}}"
+          if [[ ! "$ref" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::FRONTIER_REF must be a 40-char commit SHA (got: $ref)"
+            exit 1
+          fi
+          echo "sha=$ref" >> "$GITHUB_OUTPUT"
+
+      - name: Build static fn-fileget + libpacparser (manylinux_2_28/${{ matrix.arch }})
+        run: |
+          mkdir -p runtime
+          scripts/build-frontier-client.sh --ref "${{ steps.ref.outputs.sha }}" --out runtime
+
+      - name: Read frontier version
+        id: ver
+        run: |
+          v="$(python3 -c 'import json;print(json.load(open("runtime/frontier-manifest.json"))["frontier_version"])')"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Verify artifact inputs present
+        run: |
+          for f in fn-fileget libpacparser.so.1 frontier-manifest.json; do
+            if [ ! -f "runtime/$f" ]; then
+              echo "::error::runtime/$f missing after build"
+              ls -la runtime/ || true
+              exit 1
+            fi
+          done
+
+      - name: Upload runtime artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontier-runtime_${{ steps.ver.outputs.version }}_${{ matrix.arch }}
+          # Explicit file paths (upload-artifact globs are unreliable for
+          # dotfiles, which is why the manifest has no leading dot; explicit
+          # paths also make if-no-files-found meaningful per file).
+          path: |
+            runtime/fn-fileget
+            runtime/libpacparser.so.1
+            runtime/frontier-manifest.json
+          if-no-files-found: error
+          retention-days: 90

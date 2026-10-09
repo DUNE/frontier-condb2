@@ -1,0 +1,23 @@
+[project]
+name = "pd-cds-cli"
+version = "0.2.0"
+description = "ProtoDUNE Conditions Data Service Client CLI"
+readme = "README.md"
+authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
+requires-python = ">=3.14"
+dependencies = ["pd-cds-api", "typer>=0.21.1"]
+
+[project.scripts]
+pd-cds = "pd_cds_cli.main:app"
+
+[tool.uv.sources]
+pd-cds-api = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9.22,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [{ include-group = "lint" }, { include-group = "test" }]
+lint = ["ruff>=0.14.10"]
+test = ["pytest>=8.4"]

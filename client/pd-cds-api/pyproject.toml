@@ -1,0 +1,27 @@
+[project]
+name = "pd-cds-api"
+version = "0.2.0"
+description = "ProtoDUNE Conditions Data Service Client API Wrapper"
+readme = "README.md"
+authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
+requires-python = ">=3.14"
+dependencies = ["pd-cds-api-bin", "pydantic>=2.13.5"]
+
+[tool.uv.sources]
+pd-cds-api-bin = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9.22,<0.10.0"]
+build-backend = "uv_build"
+
+# pd_cds_api/bin/ now contains only the tracked Python anchor; the native
+# runtime lives in the separate pd-cds-api-bin distribution. uv_build already
+# excludes gitignored files, so staged native artifacts are kept out by
+# default; this entry pins the intent explicitly.
+[tool.uv.build-backend]
+artifacts = []
+
+[dependency-groups]
+dev = [{ include-group = "lint" }, { include-group = "test" }]
+lint = ["ruff>=0.14.10"]
+test = ["pytest>=8.4"]
