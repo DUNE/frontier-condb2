@@ -40,4 +40,4 @@ precision = 0
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
 lint = ["ruff>=0.14.10"]
-test = ["locust>=2.43.0", "pytest>=8.4"]
+test = ["locust>=2.43.0", "pytest>=8.4", "pytest-cov>=6"]

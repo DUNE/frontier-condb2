@@ -27,7 +27,7 @@ test: stage-check
 
 ## Unit tests with statement coverage gate over both client packages
 coverage: stage-check
-	$(UV) run --group test --with pytest-cov python -m pytest \
+	$(UV) run --group test python -m pytest \
 		--cov=pd_cds_api --cov=pd_cds_cli --cov-report=term-missing \
 		--cov-fail-under=85
 

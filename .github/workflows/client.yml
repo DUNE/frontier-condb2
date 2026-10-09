@@ -80,7 +80,7 @@ jobs:
 
       - name: Unit tests (coverage-gated)
         run: |
-          uv sync --group test --with pytest-cov
+          uv sync --group test
           uv run --no-sync python -m pytest \
               --cov=pd_cds_api --cov=pd_cds_cli \
               --cov-report=term-missing --cov-fail-under=85 -v
