@@ -1,6 +1,6 @@
 [project]
 name = "pd-cds-api-bin"
-version = "0.2.2"
+version = "0.2.3"
 description = "Prebuilt self-contained Frontier client native runtime (fn-fileget) for pd-cds-api"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
