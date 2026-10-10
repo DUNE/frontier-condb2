@@ -1,6 +1,6 @@
 [project]
 name = "pd-cds"
-version = "0.2.0"
+version = "0.2.1"
 description = "ProtoDUNE Conditions Data Service"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
@@ -28,6 +28,7 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "client/*/tests/**" = ["D"]
 "tests/**" = ["D"]
+"scripts/tests/**" = ["D"]
 
 [tool.pytest.ini_options]
 testpaths = ["client"]
@@ -39,5 +40,10 @@ precision = 0
 
 [dependency-groups]
 dev = [{ include-group = "lint" }, { include-group = "test" }]
+docs = [
+    "griffe-pydantic>=1.3.2",
+    "mkdocstrings-python>=2.0.9",
+    "zensical>=0.0.69",
+]
 lint = ["ruff>=0.14.10"]
 test = ["locust>=2.43.0", "pytest>=8.4", "pytest-cov>=6"]

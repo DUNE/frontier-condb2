@@ -5,7 +5,7 @@
 
 UV ?= uv
 
-.PHONY: stage stage-check build test coverage lint smoke check-versions clean
+.PHONY: stage stage-check build test test-scripts coverage lint docs docs-gen docs-serve smoke check-versions clean
 
 ## Stage the pinned fermitools/frontier build into pd-cds-api-bin (containerized)
 stage:
@@ -25,6 +25,10 @@ build: stage-check
 test: stage-check
 	$(UV) run --group test pytest -v
 
+## Index-generator unit tests (stdlib-only; no staged runtime needed)
+test-scripts:
+	$(UV) run --group test pytest -v scripts/tests
+
 ## Unit tests with statement coverage gate over both client packages
 coverage: stage-check
 	$(UV) run --group test python -m pytest \
@@ -34,6 +38,18 @@ coverage: stage-check
 lint:
 	$(UV) run ruff check client/ tests/ scripts/
 	$(UV) run ruff format --check client/ tests/
+
+## Build the Zensical docs site (strict: fails on warnings/dead links) -> site/
+docs: docs-gen
+	$(UV) run --group docs zensical build --clean --strict
+
+## Regenerate committed docs/reference/ pages from the client packages
+docs-gen:
+	python3 scripts/gen_api_reference.py
+
+## Live-preview the docs site (http://localhost:8000)
+docs-serve:
+	$(UV) run --group docs zensical serve
 
 ## Install built wheels into a throwaway venv and resolve fn-fileget
 smoke: build

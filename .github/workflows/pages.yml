@@ -1,0 +1,148 @@
+name: Deploy docs + package index to GitHub Pages
+
+# Single composed deployer (openspec/changes/adopt-python-docs-tooling D3):
+# Actions-mode Pages replaces the WHOLE site per deploy, so exactly one
+# workflow may run configure/upload/deploy-pages. Docs own every path except
+# /simple/**, which scripts/build_simple_index.py (distribute-wheels change)
+# regenerates statelessly from GitHub Releases into the same artifact.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - zensical.toml
+      - client/**
+      - scripts/build_simple_index.py
+      - scripts/gen_api_reference.py
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/pages.yml
+  pull_request:
+  workflow_run:
+    workflows: ["Create ProtoDUNE-CDB Release"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # PR gate: full strict docs build + D4 guard, no deploy.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      # Official-actions-only policy: uv is bootstrapped with pip (run step),
+      # and UV_LINK_MODE=copy works around Zensical's symlink-mode limit.
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+
+      # pd-cds-api-bin's setup.py hard-fails without the staged native
+      # runtime (correct for real builds) — and its path is checked at
+      # module scope, so even uv's *editable* sync install fails on a clean
+      # runner. Docs never touch the runtime (resolution is a lazy
+      # ApiClientState property), so the docs env skips that one package;
+      # uv run --no-sync below keeps the build from implicitly rebuilding it.
+      - name: Sync docs environment (locked)
+        run: uv sync --frozen --no-default-groups --group docs --no-install-package pd-cds-api-bin
+        env:
+          UV_LINK_MODE: copy
+
+      - name: API reference pages in sync with sources
+        run: python3 scripts/gen_api_reference.py --check
+
+      - name: "Build docs (strict: fails on warnings/dead links)"
+        run: uv run --no-sync --group docs zensical build --clean --strict
+        env:
+          UV_LINK_MODE: copy
+
+      - name: Guard — docs tree must not emit /simple
+        run: test ! -e site/simple
+
+  deploy:
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.event_name != 'workflow_run' ||
+       github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: python -m pip install --upgrade pip uv
+
+      # pd-cds-api-bin's setup.py hard-fails without the staged native
+      # runtime (correct for real builds) — and its path is checked at
+      # module scope, so even uv's *editable* sync install fails on a clean
+      # runner. Docs never touch the runtime (resolution is a lazy
+      # ApiClientState property), so the docs env skips that one package;
+      # uv run --no-sync below keeps the build from implicitly rebuilding it.
+      - name: Sync docs environment (locked)
+        run: uv sync --frozen --no-default-groups --group docs --no-install-package pd-cds-api-bin
+        env:
+          UV_LINK_MODE: copy
+
+      - name: API reference pages in sync with sources
+        run: python3 scripts/gen_api_reference.py --check
+
+      - name: "Build docs (strict: fails on warnings/dead links)"
+        run: uv run --no-sync --group docs zensical build --clean --strict
+        env:
+          UV_LINK_MODE: copy
+
+      - name: Guard — docs tree must not emit /simple; snapshot docs paths
+        run: |
+          test ! -e site/simple
+          find site -mindepth 1 ! -path 'site/simple*' | sort > /tmp/docs-tree.txt
+
+      - name: Generate PEP 503 index into site/simple
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python3 scripts/build_simple_index.py --from-releases
+          --site-out site/simple --quiet
+
+      - name: Guard — index confined to /simple, complete, docs untouched
+        run: |
+          test -f site/simple/index.html
+          # every project linked from the root page must have its own page
+          # (zero linked projects is legal only until the first wheel attach)
+          grep -o 'href="[^"]*"' site/simple/index.html | sed 's/href="//;s/\/"$//' \
+            | while read -r proj; do
+                [ -z "$proj" ] && continue
+                test -f "site/simple/$proj/index.html" \
+                  || { echo "ERROR: site/simple/$proj/index.html missing" >&2; exit 1; }
+              done
+          find site -mindepth 1 ! -path 'site/simple*' | sort > /tmp/docs-tree-after.txt
+          diff -u /tmp/docs-tree.txt /tmp/docs-tree-after.txt \
+            || { echo "ERROR: generator touched paths outside site/simple" >&2; exit 1; }
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
