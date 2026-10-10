@@ -77,6 +77,31 @@ make test && make build && make smoke
   other path belongs to this docs site. One composed deployer (`pages.yml`)
   is the only writer, so neither can clobber the other.
 
+## Verifying a published release
+
+When `release.yml` completes, the Pages deploy refreshes `/simple/` automatically
+(`workflow_run` trigger). Spot-checks need no matching hardware — pip can
+evaluate the index as any platform:
+
+**Wheel selection** — prove an aarch64 installer picks the aarch64 build, from
+an `x86_64` host (and vice-versa):
+
+```bash
+python3.14 -m pip download --no-deps --only-binary=:all: \
+  --platform manylinux_2_28_aarch64 --python-version 314 \
+  --implementation cp --abi cp314 \
+  -d /tmp/check --extra-index-url https://dune.github.io/frontier-condb2/simple/ pd-cds-api-bin
+ls /tmp/check    # => pd_cds_api_bin-<ver>-py3-none-manylinux_2_28_aarch64.whl
+```
+
+Substitute `manylinux_2_28_x86_64` for the other direction; a native
+`pip install --extra-index-url … pd-cds-cli` covers the host platform.
+
+**Index content** — `/simple/` must link exactly the three distributions
+(`pd-cds-api`, `pd-cds-api-bin`, `pd-cds-cli`); each project page lists every
+matching release file with a `#sha256=` fragment, and non-distribution assets
+(zip bundles like `quadlet-artifacts-*.zip`) must never appear.
+
 ## CI/CD
 
 `frontier-build.yml` builds the static runtime per-arch (native ARM runner) and
