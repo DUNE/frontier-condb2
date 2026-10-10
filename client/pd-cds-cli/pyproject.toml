@@ -1,6 +1,6 @@
 [project]
 name = "pd-cds-cli"
-version = "0.2.2"
+version = "0.2.3"
 description = "ProtoDUNE Conditions Data Service Client CLI"
 readme = "README.md"
 authors = [{ name = "Mike Clymer", email = "mike.clymer@colostate.edu" }]
