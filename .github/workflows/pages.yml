@@ -65,7 +65,7 @@ jobs:
         run: python3 scripts/gen_api_reference.py --check
 
       - name: "Build docs (strict: fails on warnings/dead links)"
-        run: uv run --frozen --group docs zensical build --clean --strict
+        run: uv run --no-sync --group docs zensical build --clean --strict
         env:
           UV_LINK_MODE: copy
 
@@ -108,7 +108,7 @@ jobs:
         run: python3 scripts/gen_api_reference.py --check
 
       - name: "Build docs (strict: fails on warnings/dead links)"
-        run: uv run --frozen --group docs zensical build --clean --strict
+        run: uv run --no-sync --group docs zensical build --clean --strict
         env:
           UV_LINK_MODE: copy
 
