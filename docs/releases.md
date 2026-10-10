@@ -102,6 +102,11 @@ Substitute `manylinux_2_28_x86_64` for the other direction; a native
 matching release file with a `#sha256=` fragment, and non-distribution assets
 (zip bundles like `quadlet-artifacts-*.zip`) must never appear.
 
+These spot-checks also run **automatically** after every release-triggered
+deploy and weekly (Monday ~06:30Z) via the `smoke` job in `pages.yml`: a red
+run means a failing installability check, and deploys are never blocked or
+rolled back by it.
+
 ## CI/CD
 
 `frontier-build.yml` builds the static runtime per-arch (native ARM runner) and
