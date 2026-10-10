@@ -71,10 +71,14 @@ automatically — installers select the wheel by its `manylinux_2_28_x86_64` /
 ## Direct release-asset URLs (pinned / air-gapped)
 
 Each release also attaches the unpacked files individually — pinnable, and
-mirrored easily for air-gapped installs:
+mirrored easily for air-gapped installs. Substitute the current version for
+`<VERSION>` (its tag is at the top of
+[`/simple/`](https://dune.github.io/frontier-condb2/simple/), and
+[`releases/latest`](https://github.com/DUNE/frontier-condb2/releases/latest)
+redirects to it):
 
 ```bash
-pip install https://github.com/DUNE/frontier-condb2/releases/download/v0.2.1/pd_cds_cli-0.2.1-py3-none-any.whl
+pip install "https://github.com/DUNE/frontier-condb2/releases/download/v<VERSION>/pd_cds_cli-<VERSION>-py3-none-any.whl"
 ```
 
 The pure-Python `pd_cds_api` / `pd_cds_cli` wheels alone are not enough at

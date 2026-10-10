@@ -24,7 +24,7 @@ input can override it for one-off runs, but the file is the source of truth).
     grep -E 'sha|frontier_version' client/pd-cds-api-bin/src/pd_cds_api_bin/frontier-manifest.json
     ```
 3. PR the `FRONTIER_REF` change (the staged binaries themselves are
-   gitignored). After merge, confirm the `frontier-runtime_<ver>_<arch>`
+   gitignored). After merge, confirm the `frontier-runtime_<VERSION>_<arch>`
    artifacts' `frontier-manifest.json` records the new SHA.
 
 [fermitools/frontier]: https://github.com/fermitools/frontier
@@ -91,7 +91,7 @@ python3.14 -m pip download --no-deps --only-binary=:all: \
   --platform manylinux_2_28_aarch64 --python-version 314 \
   --implementation cp --abi cp314 \
   -d /tmp/check --extra-index-url https://dune.github.io/frontier-condb2/simple/ pd-cds-api-bin
-ls /tmp/check    # => pd_cds_api_bin-<ver>-py3-none-manylinux_2_28_aarch64.whl
+ls /tmp/check    # => pd_cds_api_bin-<VERSION>-py3-none-manylinux_2_28_aarch64.whl
 ```
 
 Substitute `manylinux_2_28_x86_64` for the other direction; a native
@@ -105,7 +105,7 @@ matching release file with a `#sha256=` fragment, and non-distribution assets
 ## CI/CD
 
 `frontier-build.yml` builds the static runtime per-arch (native ARM runner) and
-uploads `frontier-runtime_<ver>_<arch>` artifacts (+ provenance manifest) →
+uploads `frontier-runtime_<VERSION>_<arch>` artifacts (+ provenance manifest) →
 `client.yml` stages them, builds platform-tagged wheels, hard-gates with
 `check-wheel-contents`/`auditwheel`, and smoke-installs each arch →
 `release.yml` cuts the GitHub Release and attaches each wheel/sdist as an
@@ -136,6 +136,10 @@ never floating —
 uv lock --upgrade-package zensical && uv sync --group docs
 make docs           # strict build must pass before landing the bump
 ```
+
+Documentation style rule: never hardcode a release version into `docs/` —
+use `<VERSION>` / `vX.Y.Z` placeholders (literal versions go stale with the very
+next release; the site prose outlives every tag).
 
 The API reference pages are generated from the client packages' docstrings by
 the `api-autonav` + `mkdocstrings` plugins (config in `zensical.toml`) — no
