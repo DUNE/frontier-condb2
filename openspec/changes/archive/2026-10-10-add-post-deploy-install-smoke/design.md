@@ -30,14 +30,14 @@ Steps: `actions/setup-python@v7` (3.14) → `pip install --upgrade pip` → per-
 
 ## Risks / Trade-offs
 
-- **Weekly cron silently disabled if Actions scheduling is paused on the repo/org (private-repo inactivity policy)** → schedule run history is visible in the Actions tab; acceptable for a low-stakes watcher.
+- **Weekly cron silently disabled if Actions scheduling is paused on the repo/org (private-repo inactivity policy)** → schedule run history is visible in the Actions tab; acceptable for a low-stakes watcher. *(Task 3.4, which would have observed the first firing, was waived 2026-10-10 — this risk is currently unexercised.)*
 - **Smoke depends on PyPI availability** → transient PyPI outage = red weekly run that self-clears next Monday; acceptable noise, not treated as flaky-blocked.
 - **A deleted release now *drops* from the index on next rebuild rather than 404ing** (D2 self-heal) → the monitoring requirement still earns its keep: it catches *broken-but-published* states (bad digests, wrong-arch listings, Pages regression) and warns when consumers pinned old versions through `uv.lock`.
 
 ## Migration Plan
 
 1. Land the job; trigger one `workflow_dispatch` to prove it green against the current release.
-2. Next release exercises it automatically; first weekly run confirms scheduling.
+2. Next release exercises it automatically; first weekly run confirms scheduling. — *WAIVED 2026-10-10: the maintainer chose to ship after step 1's `workflow_dispatch` proof (task 3.2) without waiting to observe the first release-triggered or first weekly run, so those two paths are wired-but-unobserved.*
 3. Rollback = delete the job + schedule lines; nothing else references them.
 
 ## Open Questions
