@@ -98,6 +98,12 @@ make docs           # strict build (fails on warnings / dead links) -> site/
 make docs-serve     # live preview at http://localhost:8000
 ```
 
+The docs build never needs the staged native runtime: CI syncs the `docs`
+group with `--no-install-package pd-cds-api-bin` (that distribution's
+`setup.py` intentionally refuses to build without `fn-fileget` & co., which
+is right for wheels but not for docs) and builds via `uv run --no-sync`.
+Locally, `make docs` runs inside the full dev venv as usual.
+
 Zensical is pre-0.1: upgrades are deliberate, single-package lock changes,
 never floating —
 
