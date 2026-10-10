@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release-version: ${{ steps.release-version.outputs.release_version }}
+      should-publish: ${{ steps.publish-gate.outputs.should_publish }}
 
     steps:
       - name: Checkout repository
@@ -44,6 +45,36 @@ jobs:
       - name: Read VERSION file
         id: release-version
         run: echo "release_version=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      # Publish-only-on-version-change (#44): a push to main cuts a GitHub
+      # Release only when VERSION names an UNPUBLISHED version. A plain merge
+      # over an already-released VERSION would --clobber the wheel assets and
+      # silently rotate the #sha256 digests the /simple/ index pins, breaking
+      # locked consumers (published-version immutability). workflow_dispatch
+      # stays the explicit re-publish/repair override (design D1-D3). A hard
+      # gh/API error aborts rather than guessing a direction.
+      - name: Compute publish gate
+        id: publish-gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: v${{ steps.release-version.outputs.release_version }}
+        run: |
+          set -uo pipefail
+          if [ "$EVENT" != 'push' ]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"   # manual run = deliberate publish
+            exit 0
+          fi
+          out=$(gh release view "$RELEASE_TAG" --repo="$GITHUB_REPOSITORY" 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -eq 0 ]; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"  # already published -> protect digests
+          elif printf '%s' "$out" | grep -qiE 'not found|was not found|does not exist|could not be found|404'; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"   # unpublished version -> proceed to cut
+          else
+            echo "ERROR: indeterminate release state for $RELEASE_TAG (gh exit $rc):" >&2
+            printf '%s\n' "$out" >&2
+            exit 1
+          fi
 
   build-and-upload-client-artifacts:
     needs: read-release-version
@@ -121,6 +152,7 @@ jobs:
 
     steps:
       - name: Download client artifacts (frontier runtimes + wheel bundles, as zips)
+        if: needs.read-release-version.outputs.should-publish == 'true'
         uses: actions/download-artifact@v8
         with:
           pattern: frontier-runtime_*
@@ -128,6 +160,7 @@ jobs:
           skip-decompress: true
 
       - name: Download wheel artifacts (as zips)
+        if: needs.read-release-version.outputs.should-publish == 'true'
         uses: actions/download-artifact@v8
         with:
           pattern: pd-cds-wheels-*
@@ -135,6 +168,7 @@ jobs:
           skip-decompress: true
 
       - name: Download server artifacts
+        if: needs.read-release-version.outputs.should-publish == 'true'
         uses: actions/download-artifact@v8
         with:
           name: "quadlet-artifacts-v${{ needs.read-release-version.outputs.release-version }}"
@@ -145,6 +179,7 @@ jobs:
       # direct pin-able URLs and the inputs the PEP 503 index enumerates.
       # Cross-arch sdists share filenames; merge-multiple keeps one copy.
       - name: Download wheel artifacts (unpacked)
+        if: needs.read-release-version.outputs.should-publish == 'true'
         uses: actions/download-artifact@v8
         with:
           pattern: pd-cds-wheels-*
@@ -152,6 +187,7 @@ jobs:
           merge-multiple: true
 
       - name: Create release
+        if: needs.read-release-version.outputs.should-publish == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
@@ -170,6 +206,7 @@ jobs:
           fi
 
       - name: Attach unpacked wheels and sdists
+        if: needs.read-release-version.outputs.should-publish == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
@@ -177,3 +214,30 @@ jobs:
           ls dist-wheels/
           gh release upload "$RELEASE_TAG" dist-wheels/*.whl dist-wheels/*.tar.gz \
             --clobber --repo="$GITHUB_REPOSITORY"
+
+      # No-op when publishing. On the VERSION-unchanged push path this is the
+      # only step that runs, so the green 'release' job explains itself instead
+      # of silently doing nothing (design D1). Skipped steps are not failures,
+      # so release.yml still concludes success and pages.yml's workflow_run
+      # deploy + smoke still fire - a correct idempotent self-heal (design D4).
+      - name: Publish-gate skip summary
+        if: needs.read-release-version.outputs.should-publish != 'true'
+        env:
+          RELEASE_TAG: v${{ needs.read-release-version.outputs.release-version }}
+        run: |
+          {
+            echo "## Release skipped — \`$RELEASE_TAG\` already published"
+            echo ""
+            echo "\`VERSION\` is unchanged from the latest GitHub Release, so the create/upload"
+            echo "steps were skipped. This protects **published-version immutability**: a"
+            echo "re-upload would rebuild the wheels with new \`#sha256\` digests and silently"
+            echo "rotate the assets the \`/simple/\` index pins, breaking locked consumers."
+            echo ""
+            echo "Merge to \`main\` publishes only on a \`VERSION\` bump. To deliberately"
+            echo "re-publish or repair \`$RELEASE_TAG\`, run workflow_dispatch on \`release.yml\`"
+            echo "(it keeps the explicit create-or-\`--clobber\` override):"
+            echo ""
+            echo '```'
+            echo "gh workflow run release.yml --ref main"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

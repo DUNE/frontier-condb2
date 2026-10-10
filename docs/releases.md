@@ -47,11 +47,13 @@ Release procedure:
 
 ```bash
 make check-versions                    # guard: everything agrees pre-bump
-# edit all five files to the new version (pick the semver level vs the last release)
+# edit all five files to the new version - bump when, and only when, this merge
+# should publish a release (pick the semver level vs the last release)
 uv lock                                # records member versions in the lockfile
 make check-versions
 make test && make build && make smoke
-# PR -> merge to main: release.yml runs the full chain and cuts GitHub Release vX.Y.Z
+# PR -> merge to main: release.yml cuts GitHub Release vX.Y.Z only when VERSION
+# changed; a merge that leaves VERSION unchanged publishes nothing (see below)
 ```
 
 ## Rules for new collaborators
@@ -68,6 +70,17 @@ make test && make build && make smoke
   (a failed mid-upload publish cannot reuse its version — bump and republish),
   and dry-runs stay free (`workflow_dispatch` → `publish-target: testpypi`
   targets TestPyPI, an independent index, without burning the PyPI number).
+- **A merge to `main` publishes only on a `VERSION` change.** `release.yml`'s
+  GitHub Release step runs on `push: main` only when `v<VERSION>` does not
+  already exist; a no-bump merge skips publishing (green `release` job with a
+  skip summary) and re-uploads nothing. This enforces **published-version
+  immutability in CI, not just convention**: re-cutting a version would rebuild
+  the wheels with new `#sha256` digests and silently rotate the assets the
+  `/simple/` index pins, breaking consumers who locked it. Bump `VERSION` when,
+  and only when, the merge should publish. To deliberately re-publish or repair
+  an already-released version, run `workflow_dispatch` on `release.yml` — the
+  explicit override that keeps the create-or-`--clobber` path (pairs with
+  "Do not delete releases" below).
 - **Do not delete releases.** The Pages `/simple/` index references
   release-download URLs; removing a release breaks installs. Repair drift by
   dispatching `pages.yml` — every deploy regenerates the whole index
