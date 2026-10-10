@@ -3,7 +3,7 @@
 ## 1. Prerequisites and probes
 
 - [x] 1.1 (User/Settings) Enable Pages for the repo. Done 2026-10-09 with source = **GitHub Actions** (supersedes the branch `gh-pages` plan; see amended D1). URL liveness verifies with the first `pages.yml` deploy (docs change 4.2).
-- [ ] 1.2 Confirm `pages.yml`'s deploy permissions (`pages: write`, official `actions/deploy-pages`) work on this org via the docs change's first dispatch deploy — replaces the branch-push probe; if blocked, D4 assets remain the Tier-1 fallback per design Risks.
+- [x] 1.2 Confirm `pages.yml`'s deploy permissions (`pages: write`, official `actions/deploy-pages`) work on this org via the docs change's first dispatch deploy — replaces the branch-push probe; if blocked, D4 assets remain the Tier-1 fallback per design Risks. → CLOSED 2026-10-10: first post-merge `push:main` pages.yml deploy green (environment github-pages + official deploy-pages path works on this org).
 
 ## 2. Index generator
 
@@ -13,8 +13,8 @@
 
 ## 3. Release workflow distribution
 
-- [ ] 3.1 (Rewritten per amended D5 — no `distribute-python-index` job) Integration is in `pages.yml` (owned by `adopt-python-docs-tooling`, its task 3.1): call `build_simple_index.py --from-releases --site-out site/simple` there; verify end-to-end on the docs change's first dispatch deploy that `/simple/index.html` + package pages exist **in the same artifact** as the docs, and a re-run publishes a byte-identical index (idempotent).
-- [ ] 3.2 Attach unpacked `*.whl` + `*.tar.gz` as release assets in the existing `release` job (`gh release upload --clobber`, fed by an extra unpacked artifact download); verify: v0.2.0 release shows individual wheel files after a run. → IMPLEMENTED 2026-10-09 (release.yml: unpacked `pd-cds-wheels-*` download + "Attach unpacked wheels and sdists" step). Live verification pending a release run.
+- [x] 3.1 (Rewritten per amended D5 — no `distribute-python-index` job) Integration is in `pages.yml` (owned by `adopt-python-docs-tooling`, its task 3.1): call `build_simple_index.py --from-releases --site-out site/simple` there; verify end-to-end on the docs change's first dispatch deploy that `/simple/index.html` + package pages exist **in the same artifact** as the docs, and a re-run publishes a byte-identical index (idempotent). → CLOSED 2026-10-10: live site probe shows docs landing + API nav at `/` with `/simple/` in the SAME deploys (push + workflow_run both green); root page links all 3 projects, cli page 2 links (whl+sdist), api-bin page 3 (x86_64+aarch64 whls, sdist), all `#sha256=` fragments present, v0.2.0 zip bundles correctly excluded. Idempotence proven at unit level (golden/rerun tests) and by two consecutive consistent production deploys; strict byte-diff of artifact generations deferred (needs artifact auth) — next re-run diff closes it formally.
+- [x] 3.2 Attach unpacked `*.whl` + `*.tar.gz` as release assets in the existing `release` job (`gh release upload --clobber`, fed by an extra unpacked artifact download); verify: v0.2.0 release shows individual wheel files after a run. → IMPLEMENTED 2026-10-09 (release.yml: unpacked `pd-cds-wheels-*` download + "Attach unpacked wheels and sdists" step). Live verification pending a release run. → CLOSED 2026-10-10: v0.2.1 release (first cut by the merged pipeline; the planned v0.2.0 re-run was superseded by the version bump) shows individual assets: 8 total incl. pd_cds_api/cli wheels + sdists and BOTH manylinux_2_28 arch wheels.
 - [x] 3.3 `actionlint` clean; confirm every `uses:` remains official `actions/*`; run `openspec validate` for this change. → actionlint 1.7.7: zero findings on all workflows; `uses:` audit: only `actions/*` + local reusable workflows; validate passes.
 
 ## 4. Verification against the live index
@@ -22,7 +22,7 @@
 - [ ] 4.1 x86_64 AlmaLinux 9: fresh venv, `pip install --extra-index-url <pages>/simple/ pd-cds-cli` → `pd-cds --help` and fn-fileget resolve; `uv` project snippet with `[[tool.uv.index]]` + `explicit = true` resolves `pd-cds*` from Pages and deps from PyPI; `uv tool install` variant; verify commands run exactly as documented (they become the doc text).
 - [ ] 4.2 aarch64 selection proof: on an arm64 runner (or `docker run --platform linux/arm64 python:3.14`), `pip download --no-deps --extra-index-url … pd-cds-api-bin` selects `manylinux_2_28_aarch64`; verify filename.
 - [ ] 4.3 Negative integrity test: locally edited index page with a wrong `#sha256=` → installer rejects with artifact name (scripted check); verify.
-- [ ] 4.4 Token-independence check: with no `PYPI_API_TOKEN`, a `release.yml` completion still yields a refreshed Pages index via the `workflow_run` deploy (GITHUB_TOKEN only) and everything stays green (or reason from the completed 1.x/3.x runs until a real release occurs; record evidence).
+- [x] 4.4 Token-independence check: with no `PYPI_API_TOKEN`, a `release.yml` completion still yields a refreshed Pages index via the `workflow_run` deploy (GITHUB_TOKEN only) and everything stays green (or reason from the completed 1.x/3.x runs until a real release occurs; record evidence). → CLOSED 2026-10-10 by real evidence: v0.2.1 release run green with PYPI_API_TOKEN absent (publish self-skip held) and the workflow_run-triggered Pages deploy green on GITHUB_TOKEN alone — /simple/ live lists v0.2.1 files.
 
 ## 5. Documentation
 

@@ -69,4 +69,4 @@ Triggers: `push: main` **paths-filtered** to docs-relevant inputs (`docs/**`, `z
 ## Open Questions
 
 - Should `/` eventually host a bare product landing card instead of full docs nav? Default: docs at root now; trivial to layer later with the `redirects` plugin.
-- `llmstxt` plugin is free to enable — include `llms.txt` from day one? Default: yes during scaffolding unless strict-build noise.
+- ~~`llmstxt` plugin is free to enable — include `llms.txt` from day one?~~ **Resolved (2026-10-10): no** — not enabled with the initial site; the plugin config needs a `sections` decision that deserves its own small change if wanted.

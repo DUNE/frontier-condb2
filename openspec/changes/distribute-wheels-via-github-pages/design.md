@@ -9,7 +9,7 @@ See proposal.md for motivation. Pipeline facts this builds on: every release run
 **Goals:**
 - PyPI-quality `pip`/`uv`/`pipx` install UX from a URL under our control; works with zero PyPI accounts.
 - Zero-manual operation after releases; repairable; idempotent.
-- Coexist on GitHub Pages with the future docs site.
+- Coexist on GitHub Pages with the docs site (delivered concurrently by `adopt-python-docs-tooling` via the composed `pages.yml`).
 
 **Non-Goals:**
 - OCI-registry (GHCR) package distribution; PyPI trusted publishing; index hosting outside GitHub; sdist source-build support on Windows/macOS.

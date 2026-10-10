@@ -15,10 +15,10 @@ The user stated the current hub-and-spoke README layout is an intentional stopga
 ## Capabilities
 
 ### New Capabilities
-- (intended) None behaviorally; docs tooling is process-only — `skip_specs: true` retained. The Pages co-deploy contract lives in design.md and is cross-reflected in the wheels change.
+- `documentation-site`: the externally observable publishing contract this change grew beyond its "process-only" stub assumption — a single composed GitHub Pages publisher for docs + wheel index with enforced path ownership, atomic co-publication, a strict validation gate on merges, and an API reference derived from the packages' own docstrings. (`skip_specs` removed 2026-10-10: the sole-deployer/clobber-freedom contract in design D1/D3/D4 is a behavioral guarantee the `wheel-distribution-index` capability depends on, and archiving this change with no delta would leave it specified nowhere in main specs.)
 
 ### Modified Capabilities
-- (none)
+- (none — the wheels `wheel-distribution-index` delta is unchanged; it consumes this capability's `/simple/**` publication without restating the deployer contract.)
 
 ## Impact
 
