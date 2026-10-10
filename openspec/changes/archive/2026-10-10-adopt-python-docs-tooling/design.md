@@ -11,7 +11,7 @@ See proposal.md for motivation. Research facts from zensical.org (reviewed 2026-
 - `zensical build --strict` fails on warnings/broken links; `--clean` clears the build cache (Zensical recommends clean builds on CI, no caching yet).
 - Install as project dev dependency is the recommended pattern (`uv add --dev zensical`), run via `uv run zensical`. Known constraint: Zensical does **not** support uv's symlink link-mode for installs.
 
-Repo state: hub README (explicit stopgap banner) + leaf docs — `infra/README.md` (350-line runbook), `tests/perf/README.md`, `client/pd-cds-{api,api-bin,cli}/README.md`; `docs/images/` exists (image-path debt already fixed in-repo); `.gitignore` already excludes `site/`. `distribute-wheels-via-github-pages` (unimplemented) planned a `gh-pages` *branch* partition; that premise died with the Pages-mode choice and is amended there (its D1).
+Repo state: hub README (explicit stopgap banner) + leaf docs — `infra/README.md` (350-line runbook), `tests/perf/README.md`, `client/pd-cds-{api,api-bin,cli}/README.md`; `docs/images/` exists (image-path debt already fixed in-repo); `.gitignore` already excludes `site/`. `distribute-wheels-via-github-pages` (planned and landed alongside; its generator shipped in `58baa36`) originally planned a `gh-pages` *branch* partition; that premise died with the Pages-mode choice and is amended there (its D1).
 
 ## Goals / Non-Goals
 
