@@ -31,9 +31,12 @@ the primary index** and add ours as an **extra** one:
 
 === "uv (project)"
 
-    Pin `pd-cds*` to our index in `pyproject.toml`; dependencies stay on PyPI:
+    Pin the three `pd-cds*` names to our index in `pyproject.toml`; all other
+    dependencies stay on PyPI:
 
     ```toml
+    dependencies = ["pd-cds-cli", "pd-cds-api", "pd-cds-api-bin"]
+
     [[tool.uv.index]]
     name = "pd-cds"
     url = "https://dune.github.io/frontier-condb2/simple/"
@@ -41,7 +44,15 @@ the primary index** and add ours as an **extra** one:
 
     [tool.uv.sources]
     pd-cds-cli = [{ index = "pd-cds" }]
+    pd-cds-api = [{ index = "pd-cds" }]
+    pd-cds-api-bin = [{ index = "pd-cds" }]
     ```
+
+    All three must be listed as direct dependencies *and* sources-bound: uv
+    applies `tool.uv.sources` only to direct requirements, so with
+    `explicit = true` binding just `pd-cds-cli`, its transitive `pd-cds-api`
+    requirement would resolve against PyPI — where it does not exist — and
+    `uv lock` fails with "pd-cds-api was not found in the package registry".
 
 A bare `--index-url` (replacing PyPI) **fails** — third-party dependencies
 (`typer`, `pydantic`, …) are not hosted on our index. Every index link carries
