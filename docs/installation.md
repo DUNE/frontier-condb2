@@ -63,7 +63,7 @@ Each release also attaches the unpacked files individually — pinnable, and
 mirrored easily for air-gapped installs:
 
 ```bash
-pip install https://github.com/DUNE/frontier-condb2/releases/download/v0.2.0/pd_cds_cli-0.2.0-py3-none-any.whl
+pip install https://github.com/DUNE/frontier-condb2/releases/download/v0.2.1/pd_cds_cli-0.2.1-py3-none-any.whl
 ```
 
 The pure-Python `pd_cds_api` / `pd_cds_cli` wheels alone are not enough at

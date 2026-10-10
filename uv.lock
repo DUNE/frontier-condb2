@@ -820,7 +820,7 @@ wheels = [
 
 [[package]]
 name = "pd-cds"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "pd-cds-cli" },
@@ -871,7 +871,7 @@ test = [
 
 [[package]]
 name = "pd-cds-api"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "client/pd-cds-api" }
 dependencies = [
     { name = "pd-cds-api-bin" },
@@ -906,7 +906,7 @@ test = [{ name = "pytest", specifier = ">=8.4" }]
 
 [[package]]
 name = "pd-cds-api-bin"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "client/pd-cds-api-bin" }
 
 [package.dev-dependencies]
@@ -925,7 +925,7 @@ lint = [{ name = "ruff", specifier = ">=0.14.10" }]
 
 [[package]]
 name = "pd-cds-cli"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "client/pd-cds-cli" }
 dependencies = [
     { name = "pd-cds-api" },
