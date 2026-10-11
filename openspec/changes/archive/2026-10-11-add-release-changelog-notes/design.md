@@ -34,7 +34,18 @@ New step before "Create release": run `notes` mode → `notes.md` (env `GITHUB_T
 `docs/release-notes.md` is committed as a valid placeholder (HTML comment header: regenerated at deploy). `pages.yml` runs `release_notes.py feed --out docs/release-notes.md` **before** `zensical build` in both jobs, best-effort (`|| echo warning`): CI deploys then always publish fresh history (spec scenario), while API hiccups degrade to the last committed text instead of blocking the site; offline contributors build the placeholder as-is and the strict link gate never sees a missing page (nav entry is static in `zensical.toml`). Feed content: per release — `## vX.Y.Z — title (YYYY-MM-DD)` + stored body + release URL; ordered by API `created_at` desc (drafts invisible to the public listing anyway). This trades one slightly-stale-in-git file for zero build-time coupling between docs correctness and GitHub API availability — the alternative (committing refreshed content) would need a drift gate whose "staleness" is external data, which is unfixable by the contributor and wrong as a CI failure.
 
 ### D6 — Documentation landing spot
-`docs/releases.md` gains a "Release notes" subsection: mechanism summary, `CHANGELOG.md` heading contract, fallback semantics, and pointer to the new [Release history](release-notes.md) page; root `CHANGELOG.md` header documents the format for the rare curator.
+`docs/release-procedures.md` (renamed from `docs/releases.md`, retitled "Release
+Procedures") gains a "Release notes" subsection: mechanism summary,
+`CHANGELOG.md` heading contract, fallback semantics, and pointer to the new
+[Release history](release-notes.md) page; root `CHANGELOG.md` header documents
+the format for the rare curator. Both pages sit under a single **"Releases"**
+nav section (with the process/procedures page and the generated history page),
+replacing the earlier two-item nav — a pure information-architecture tidy-up
+that changes no behavior. Related sidebar chrome shipped alongside:
+`navigation.instant.progress` (top reading-progress bar) and `navigation.expand`
+(subsections pre-expanded, applied client-side by the theme bundle) were added,
+and `navigation.path` breadcrumbs were already enabled — presentation-only
+feature flags in `zensical.toml`, no content or behavior impact.
 
 ## Risks / Trade-offs
 

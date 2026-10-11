@@ -159,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
     Returns:
         0 when in sync / written; 1 when ``--check`` finds drift.
     """
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
     parser.add_argument(
         "--check",
         action="store_true",

@@ -29,7 +29,10 @@ nav = [
   ] },
   { "Performance testing" = "perf.md" },
   { "Infrastructure runbook" = "infra/runbook.md" },
-  { "Releases & maintenance" = "releases.md" },
+  { "Releases" = [
+      "release-procedures.md",
+      "release-notes.md",
+  ] },
 ]
 
 [project.theme]
@@ -42,10 +45,12 @@ features = [
   "content.footnote.tooltips",
   "content.tabs.link",
   "content.tooltips",
+  "navigation.expand",
   "navigation.footer",
   "navigation.indexes",
   "navigation.instant",
   "navigation.instant.prefetch",
+  "navigation.instant.progress",
   "navigation.path",
   "navigation.sections",
   "navigation.top",

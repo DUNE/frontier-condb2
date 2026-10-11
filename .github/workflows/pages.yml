@@ -68,6 +68,16 @@ jobs:
       - name: API reference pages in sync with sources
         run: python3 scripts/gen_api_reference.py --check
 
+      # Best-effort refresh of the release-history page from the Releases API
+      # (issue #47). Non-fatal: on any API hiccup the committed placeholder at
+      # docs/release-notes.md remains and the strict build still passes offline.
+      - name: Refresh release-history page (best-effort)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python3 scripts/release_notes.py feed --out docs/release-notes.md
+          || echo "warning: release-history refresh failed; keeping committed placeholder"
+
       - name: "Build docs (strict: fails on warnings/dead links)"
         run: uv run --no-sync --group docs zensical build --clean --strict
         env:
@@ -114,6 +124,16 @@ jobs:
 
       - name: API reference pages in sync with sources
         run: python3 scripts/gen_api_reference.py --check
+
+      # Best-effort refresh of the release-history page from the Releases API
+      # (issue #47). Non-fatal: on any API hiccup the committed placeholder at
+      # docs/release-notes.md remains and the strict build still passes offline.
+      - name: Refresh release-history page (best-effort)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python3 scripts/release_notes.py feed --out docs/release-notes.md
+          || echo "warning: release-history refresh failed; keeping committed placeholder"
 
       - name: "Build docs (strict: fails on warnings/dead links)"
         run: uv run --no-sync --group docs zensical build --clean --strict

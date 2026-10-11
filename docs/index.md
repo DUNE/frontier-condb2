@@ -20,8 +20,8 @@ GitHub Pages — see [Installation](installation.md).
 | `tests/perf/` | Locust perf harness for the client | [Performance testing](perf.md) |
 | `infra/` | Server-side stack: ConDB2 REST API, Frontier server, compose/quadlet | [Runbook](infra/runbook.md) |
 | `scripts/` | `build-frontier-client.sh`, `stage-frontier-client.sh` | inline `--help` ([source](https://github.com/DUNE/frontier-condb2/tree/main/scripts)) |
-| `FRONTIER_REF` / `VERSION` | Pinned upstream commit / release version (lockstep, see below) | [Releases & maintenance](releases.md) |
-| `.github/workflows/` | `frontier-build.yml` → `client.yml` → `release.yml` → `pages.yml` (this site + [wheel index][simple]) | [Releases & maintenance](releases.md#cicd) |
+| `FRONTIER_REF` / `VERSION` | Pinned upstream commit / release version (lockstep, see below) | [Release Procedures](release-procedures.md) |
+| `.github/workflows/` | `frontier-build.yml` → `client.yml` → `release.yml` → `pages.yml` (this site + [wheel index][simple]) | [Release Procedures](release-procedures.md#cicd) |
 
 [api]: reference/pd_cds_api.md
 
