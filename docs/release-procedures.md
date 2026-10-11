@@ -1,4 +1,4 @@
-# Releases & maintenance
+# Release Procedures
 
 ## Bumping the pinned Frontier client (`FRONTIER_REF`)
 
@@ -119,6 +119,28 @@ These spot-checks also run **automatically** after every release-triggered
 deploy and weekly (Monday ~06:30Z) via the `smoke` job in `pages.yml`: a red
 run means a failing installability check, and deploys are never blocked or
 rolled back by it.
+
+## Release notes
+
+Every GitHub Release gets a human-readable body **automatically** — no per-PR
+changelog chore. On publish `release.yml` runs `scripts/release_notes.py notes`:
+it compares the released revision against the previous `vX.Y.Z` tag, groups the
+commits by their `#<issue> - <summary>` subject (dropping merge commits), and
+writes one section per issue with bullet summaries linking each issue. Rerunning
+the release job refreshes the body to the same deterministic content (idempotent
+with the `--clobber` asset path).
+
+- **Override.** To hand-write a milestone's notes, add a `## [X.Y.Z] - YYYY-MM-DD`
+  section to the root `CHANGELOG.md` (no leading `v`, version matching exactly).
+  That section becomes the release body verbatim. Nothing in CI requires it —
+  generated notes are the default.
+- **Fallback.** With no earlier tag to compare against (the first release) or no
+  derivable commits, the run stays green using GitHub's automatic notes.
+- **History page.** The site lists the published bodies at
+  [Release history](release-notes.md), refreshed from the Releases API on every
+  deploy. To fix up an already-published body, re-dispatch `release.yml` after
+  editing `CHANGELOG.md` (for the current `VERSION`), or edit it directly with
+  `gh release edit vX.Y.Z --notes-file <file>`.
 
 ## CI/CD
 

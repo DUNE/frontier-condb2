@@ -186,23 +186,60 @@ jobs:
           path: dist-wheels/
           merge-multiple: true
 
+      # Derive the release body from the #<issue> commit history (issue #47).
+      # exit 0 -> notes.md written (fallback=false); exit 3 -> nothing derivable
+      # (no prior tag / empty diff) -> keep GitHub auto-notes; any other code
+      # fails the step loudly rather than silently shipping an empty body.
+      - name: Generate release notes
+        if: needs.read-release-version.outputs.should-publish == 'true'
+        id: notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.read-release-version.outputs.release-version }}
+          RELEASE_REF: ${{ github.sha }}
+        run: |
+          rc=0
+          python3 scripts/release_notes.py notes \
+            --version "$RELEASE_VERSION" --ref "$RELEASE_REF" --out notes.md || rc=$?
+          case "$rc" in
+            0) echo "fallback=false" >> "$GITHUB_OUTPUT"
+               echo "Generated release notes for v$RELEASE_VERSION ($(wc -l < notes.md) lines).";;
+            3) echo "fallback=true"  >> "$GITHUB_OUTPUT"
+               echo "Nothing derivable; falling back to GitHub auto-notes.";;
+            *) echo "ERROR: release-notes generation failed (exit $rc)" >&2; exit "$rc";;
+          esac
+
       - name: Create release
         if: needs.read-release-version.outputs.should-publish == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: "v${{ needs.read-release-version.outputs.release-version }}"
+          NOTES_FALLBACK: ${{ steps.notes.outputs.fallback }}
         run: |
           if gh release view "$RELEASE_TAG" --repo="$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release $RELEASE_TAG already exists; refreshing assets (--clobber)."
             gh release upload "$RELEASE_TAG" ./dist/*.zip \
               --clobber --repo="$GITHUB_REPOSITORY"
-          else
+            if [ "$NOTES_FALLBACK" != 'true' ]; then
+              echo "Refreshing release body from generated notes (idempotent on rerun)."
+              gh release edit "$RELEASE_TAG" --notes-file notes.md \
+                --repo="$GITHUB_REPOSITORY"
+            fi
+          elif [ "$NOTES_FALLBACK" = 'true' ]; then
+            echo "No derivable notes; creating release with GitHub auto-notes."
             gh release create "$RELEASE_TAG" \
               ./dist/*.zip \
               --repo="$GITHUB_REPOSITORY" \
               --target="${{ github.ref_name }}" \
               --title="$RELEASE_TAG" \
               --generate-notes
+          else
+            gh release create "$RELEASE_TAG" \
+              ./dist/*.zip \
+              --repo="$GITHUB_REPOSITORY" \
+              --target="${{ github.ref_name }}" \
+              --title="$RELEASE_TAG" \
+              --notes-file notes.md
           fi
 
       - name: Attach unpacked wheels and sdists

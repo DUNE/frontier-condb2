@@ -504,7 +504,7 @@ def build_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         prog="build_simple_index.py",
-        description=__doc__.splitlines()[0],
+        description=(__doc__ or "").partition("\n")[0],
         epilog=(
             "modes: --from-releases (stateless rebuild via GitHub REST; "
             "production path) or --wheels DIR --tag TAG (incremental merge). "
@@ -566,7 +566,7 @@ def main(argv: list[str] | None = None) -> int:
         if not token and not args.quiet:
             print("warning: GITHUB_TOKEN unset; unauthenticated API rate limits apply",
                   file=sys.stderr)
-        api_base = os.environ.get("GITHUB_API_URL", args.api_base).rstrip("/")
+        api_base = (os.environ.get("GITHUB_API_URL") or args.api_base).rstrip("/")
         if not args.quiet:
             print(f"enumerating releases of {repo} via {api_base}")
         releases = load_releases(repo, token=token, api_base=api_base,

@@ -9,8 +9,8 @@ Releases are cut by `release.yml` with `gh release create --generate-notes`, whi
 - **Generated release notes (default path):** a stdlib script derives Markdown release notes for a version by enumerating the commits between the previous release tag and the release ref (GitHub compare API), dropping merge commits, grouping by the `#<issue>` subject prefix, and rendering one section per issue/PR with bullet summaries and issue links. `release.yml` attaches them on create and **updates the body on rerun** (matching the idempotent `--clobber` asset semantics).
 - **Curation escape hatch (expected to be rarely used):** if the repo contains a `CHANGELOG.md` section whose heading matches the exact release version, that section is used verbatim as the release body instead of the generated one. No CI enforcement, no per-PR obligation — pure override.
 - **Fallback for the degenerate case:** when there is no previous tag (first release) or no derivable content, the workflow keeps the current `--generate-notes` behavior rather than failing.
-- **Docs-site release history page:** a new `docs/release-notes.md` page (placeholder committed; refreshed from the Releases API during the `pages.yml` build before `zensical build`) lists published versions with their notes, linked from the nav and from `docs/releases.md`.
-- **Process documentation:** the release-procedure block in `docs/releases.md` documents the notes mechanism and the optional curation step.
+- **Docs-site release history page:** a new `docs/release-notes.md` page (placeholder committed; refreshed from the Releases API during the `pages.yml` build before `zensical build`) lists published versions with their notes, linked from the nav and from `docs/release-procedures.md`.
+- **Process documentation:** the release-procedure block in `docs/release-procedures.md` (renamed from `docs/releases.md`, retitled "Release Procedures") documents the notes mechanism and the optional curation step; the "Releases & maintenance" and "Release history" nav items are consolidated into one **"Releases"** section.
 
 ## Capabilities
 
@@ -24,5 +24,5 @@ Releases are cut by `release.yml` with `gh release create --generate-notes`, whi
 
 - New `scripts/release_notes.py` (+ fixtures/golden tests under `scripts/tests/`, reusing the `build_simple_index.py` opener-injection and `GITHUB_TOKEN` patterns).
 - `.github/workflows/release.yml` (notes generation step; `--generate-notes` → `--notes-file` on create; `gh release edit` on the exists-branch), `.github/workflows/pages.yml` (feed refresh step before docs build).
-- New committed files: `CHANGELOG.md` (seed with format docs only), `docs/release-notes.md` (placeholder + nav entry in `zensical.toml`), `docs/releases.md` additions.
+- New committed files: `CHANGELOG.md` (seed with format docs only), `docs/release-notes.md` (placeholder), `docs/release-procedures.md` additions (`docs/releases.md` renamed + retitled; nav consolidated into a single "Releases" section). `zensical.toml` also gains the `navigation.instant.progress` and `navigation.expand` theme features (`navigation.path` breadcrumbs already present) — presentation-only sidebar chrome, no behavior impact.
 - Official-actions-only and stdlib-only constraints hold; no new Python dependencies.
