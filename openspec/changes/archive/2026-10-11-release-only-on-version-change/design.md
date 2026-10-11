@@ -112,9 +112,14 @@ spec-enforced guarantee is future work, out of scope here.
 ## Migration Plan
 
 1. Land the `release.yml` probe + step gates and the `docs/releases.md` updates
-   in one PR (this change).
+   in one PR (this change). — *Landed via PR #45 (merged to `main`).*
 2. No data migration; nothing already-published changes. First VERSION-unchanged
-   merge after landing shows `release` green with the skip summary.
+   merge after landing shows `release` green with the skip summary. — *Confirmed:
+   run 38090423162 (PR #45 merge, no-bump) skipped all six publish steps, ran only
+   the skip-summary step, left `v0.2.3` assets untouched. The symmetric
+   "first version-bump release cuts normally" observation was **waived**
+   (2026-10-10) - that path is this change's unchanged create/attach code, reached
+   only via `should-publish=true` (the same condition every prior release used).*
 3. Rollback = revert the PR (job returns to unconditional create-or-clobber).
 
 ## Open Questions
