@@ -151,6 +151,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Full checkout of the released commit: the notes step runs
+      # scripts/release_notes.py from the workspace and its curated
+      # CHANGELOG.md override is read from disk. This job previously
+      # shipped no checkout (artifact downloads + gh release only), which
+      # made the first real version bump after #47 fail with "can't open
+      # file scripts/release_notes.py".
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Download client artifacts (frontier runtimes + wheel bundles, as zips)
         if: needs.read-release-version.outputs.should-publish == 'true'
         uses: actions/download-artifact@v8
