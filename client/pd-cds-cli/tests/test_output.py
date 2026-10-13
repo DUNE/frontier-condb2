@@ -32,7 +32,13 @@ class TestPrintVerbose:
         )
         print_verbose(make_ctx(ttl=3), result)  # type: ignore[arg-type]
         text = recorded_console.export_text()
-        for token in ("--api-server-url", "--cache-proxy-url", "--ttl", "--verbose"):
+        for token in (
+            "--api-server-url",
+            "--cache-proxy-url",
+            "--proxy-config-url",
+            "--ttl",
+            "--verbose",
+        ):
             assert token in text
         assert "42 bytes written" in text
 

@@ -33,6 +33,7 @@ class TestDefaults:
         assert "-r" not in argv and "-R" not in argv
         assert connect(spy) == (
             "(serverurl=http://dunefrontier.fnal.gov:8000/dune_runcon_prod)"
+            "(proxyconfigurl=auto)"
             "(proxyurl=http://localhost:3128/)"
         )
 
@@ -62,6 +63,30 @@ class TestGlobalOptions:
         invoke(runner, ["--cache-proxy-url", "http://proxy.example:3128", *GET])
         assert "(proxyurl=http://proxy.example:3128/)" in connect(spy)
 
+    def test_proxy_config_url_override_reaches_connect_string(
+        self, runner, spy
+    ) -> None:
+        invoke(
+            runner,
+            ["--proxy-config-url", "http://wlcg-wpad.fnal.gov/wpad.dat", *GET],
+        )
+        assert "(proxyconfigurl=http://wlcg-wpad.fnal.gov/wpad.dat)" in connect(spy)
+
+    def test_proxy_config_url_none_omits_token(self, runner, spy) -> None:
+        invoke(runner, ["--proxy-config-url", "none", *GET])
+        assert connect(spy) == (
+            "(serverurl=http://dunefrontier.fnal.gov:8000/dune_runcon_prod)"
+            "(proxyurl=http://localhost:3128/)"
+        )
+
+    @pytest.mark.parametrize("value", ["https://x.org/wpad.dat", "not-a-url"])
+    def test_invalid_proxy_config_url_exits_two_without_invoking(
+        self, runner, spy, value
+    ) -> None:
+        result = invoke(runner, ["--proxy-config-url", value, *GET])
+        assert result.exit_code == 2
+        assert spy.calls == []
+
     @pytest.mark.parametrize(
         ("ttl", "expected"), [("1", "-r"), ("3", "-R")], ids=["short", "forever"]
     )
@@ -89,6 +114,18 @@ class TestEnvironmentVariables:
         invoke(runner, GET)
         assert "(proxyurl=http://envproxy.example:3128/)" in connect(spy)
 
+    def test_proxy_config_env_var(self, runner, spy, monkeypatch) -> None:
+        monkeypatch.setenv(
+            "FRONTIER_PROXY_CONFIG_URL", "http://wlcg-wpad.fnal.gov/wpad.dat"
+        )
+        invoke(runner, GET)
+        assert "(proxyconfigurl=http://wlcg-wpad.fnal.gov/wpad.dat)" in connect(spy)
+
+    def test_proxy_config_env_var_none_disables(self, runner, spy, monkeypatch) -> None:
+        monkeypatch.setenv("FRONTIER_PROXY_CONFIG_URL", "none")
+        invoke(runner, GET)
+        assert "proxyconfigurl" not in connect(spy)
+
     def test_ttl_env_var(self, runner, spy, monkeypatch) -> None:
         monkeypatch.setenv("FRONTIER_TTL", "3")
         invoke(runner, GET)
@@ -99,6 +136,11 @@ class TestEnvironmentVariables:
         invoke(runner, ["--ttl", "1", *GET])
         argv = client_call(spy)
         assert "-r" in argv and "-R" not in argv
+
+    def test_proxy_config_flag_beats_env_var(self, runner, spy, monkeypatch) -> None:
+        monkeypatch.setenv("FRONTIER_PROXY_CONFIG_URL", "http://env-wpad/wpad.dat")
+        invoke(runner, ["--proxy-config-url", "none", *GET])
+        assert "proxyconfigurl" not in connect(spy)
 
 
 class TestCommandOptions:

@@ -43,6 +43,7 @@ def print_verbose(ctx: typer.Context, result: CompletedProcess) -> None:
     # global options in main.py.
     table.add_row("--api-server-url", f"{ctx.obj.api_server_url}")
     table.add_row("--cache-proxy-url", f"{ctx.obj.cache_proxy_url}")
+    table.add_row("--proxy-config-url", f"{ctx.obj.proxy_config_url}")
     table.add_row("--ttl", f"{ctx.obj.frontier_ttl}")
     table.add_row("--verbose, -v", f"{ctx.obj.verbose}")
     padded_table = Padding(renderable=table, pad=1)

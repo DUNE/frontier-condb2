@@ -12,6 +12,7 @@ substitute `uv run pd-cds` for `pd-cds` in every example.
 |---|---|---|
 | `--api-server-url` | `CONDB_API_SERVER_URL` | `http://dunefrontier.fnal.gov:8000/dune_runcon_prod` |
 | `--cache-proxy-url` | `FRONTIER_CACHE_PROXY_URL` | `http://localhost:3128` |
+| `--proxy-config-url` | `FRONTIER_PROXY_CONFIG_URL` | `auto` — Frontier proxy auto-config (PAC) URL (see [Proxy auto-config](#proxy-auto-config)) |
 | `--ttl` (1–3) | `FRONTIER_TTL` | `2` — Frontier cache time-to-live: `1`=short (fresh), `2`=default, `3`=forever |
 | `-v`, `--verbose` | — | off (rich panel with resolved options + stdout) |
 
@@ -35,6 +36,36 @@ Output is written to `./pd-cds-data/` (relative to your CWD):
 The Frontier cache time-to-live defaults to level `2` (normal server cache
 duration); `--ttl 3` (or `FRONTIER_TTL=3`) asks the cache to keep immutable
 historical ranges forever, `--ttl 1` requests a fresh fetch.
+
+## Proxy auto-config
+
+`--proxy-config-url` selects the [Proxy Auto-Config
+(PAC)](https://en.wikipedia.org/wiki/Proxy_auto-config) URL handed to the
+native `fn-fileget` client (`proxyconfigurl` in its connection string):
+
+- `auto` (default) — discover the PAC file via WPAD (`http://wpad/wpad.dat`).
+- An `http://` or `file://` URL — an explicit PAC file, e.g.
+  `http://wlcg-wpad.fnal.gov/wpad.dat`.
+- `none` — disable proxy auto-config; only `--cache-proxy-url` is used
+  (the pre-PAC behaviour).
+
+The PAC file's `FindProxyForURL` result decides the actual proxies, and it
+is evaluated per query by the native client: proxies it returns take
+priority, and `--cache-proxy-url` drops to backup. Note that if the PAC URL
+cannot be fetched, `fn-fileget` fails with a fatal configuration error — it
+does **not** silently fall back to `--cache-proxy-url`. On networks without
+a WPAD-provided PAC, pass `--proxy-config-url none` (or a concrete PAC
+URL). PAC files are typically served over cleartext HTTP, so the proxy
+selection inherits the usual WPAD/PAC trust caveats.
+
+```bash
+# no WPAD on this network: behave like older releases (proxy only)
+pd-cds --proxy-config-url none get-data pdunesp.run_conditionstest --t0 25034
+
+# site-provided PAC file
+pd-cds --proxy-config-url http://wlcg-wpad.fnal.gov/wpad.dat \
+    get-data pdunesp.run_conditionstest --t0 25034
+```
 
 ## Examples
 
@@ -61,6 +92,9 @@ pd-cds --api-server-url http://fermicloud725.fnal.gov:8000/dune_runcon_prod \
 - `-v get-data` fails with `No such option` **after** the subcommand: globals
   belong before it (`pd-cds -v get-data ...`).
 - Network errors from `fn-fileget` are printed with a non-zero exit code.
+- `failed to read a proxyconfig url` means the PAC file was unreachable (the
+  default `auto` tries WPAD); use `--proxy-config-url none` or a real PAC URL
+  — see [Proxy auto-config](#proxy-auto-config).
 - Missing staged runtime (dev checkout only) raises `FileNotFoundError` with
   staging instructions → `make stage`.
 

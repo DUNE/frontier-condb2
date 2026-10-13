@@ -13,7 +13,7 @@ from importlib.resources.abc import Traversable
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, HttpUrl, computed_field
+from pydantic import BaseModel, Field, HttpUrl, computed_field, field_validator
 
 _STAGING_HINT = (
     "Run scripts/stage-frontier-client.sh (local development) or obtain "
@@ -82,10 +82,43 @@ class ApiClientState(BaseModel):
             "data). Higher levels trade freshness for latency."
         ),
     )
+    proxy_config_url: str = Field(
+        default="auto",
+        description=(
+            "Frontier proxy auto-config (PAC) URL passed to the native "
+            "client: ``auto`` discovers a PAC file via WPAD "
+            "(``http://wpad/wpad.dat``), ``none`` disables proxy "
+            "auto-config, or give an ``http://``/``file://`` PAC URL. "
+            "PAC-derived proxies take priority over "
+            "``cache_proxy_url``; an unreachable PAC is fatal to the "
+            "query in the native client."
+        ),
+    )
     verbose: bool = Field(
         default=False,
         description="Enable verbose output (CLI only; the API ignores it).",
     )
+
+    @field_validator("proxy_config_url")
+    @classmethod
+    def _validate_proxy_config_url(cls, value: str) -> str:
+        """Accept only the forms the native Frontier client understands.
+
+        The C client (``frontier_config.c``) rewrites ``auto`` to
+        ``http://wpad/wpad.dat`` and accepts only ``http://`` or
+        ``file://`` PAC URLs; anything else is a fatal config error at
+        channel creation, so reject it up front. ``none`` is our
+        client-side disable sentinel and never reaches the connect string.
+        """
+        if value in ("auto", "none"):
+            return value
+        if value.startswith(("http://", "file://")):
+            return value
+        msg = (
+            "proxy_config_url must be 'auto', 'none', or an http:// or "
+            f"file:// URL pointing to a PAC file; got {value!r}"
+        )
+        raise ValueError(msg)
 
     @computed_field
     @property

@@ -43,6 +43,19 @@ def main(
             help=f"(Optional) Frontier Cache Proxy URL - Default: {ApiClientState().cache_proxy_url}",
         ),
     ] = None,
+    proxy_config_url: Annotated[
+        str | None,
+        typer.Option(
+            "--proxy-config-url",
+            envvar="FRONTIER_PROXY_CONFIG_URL",
+            help=(
+                "(Optional) Frontier proxy auto-config (PAC) URL: 'auto' = "
+                "WPAD (http://wpad/wpad.dat), 'none' = disabled, or an "
+                "http:// / file:// PAC URL - Default: "
+                f"{ApiClientState().proxy_config_url}"
+            ),
+        ),
+    ] = None,
     ttl: Annotated[
         int | None,
         typer.Option(
@@ -66,7 +79,7 @@ def main(
 
     Global options must appear before the subcommand. They may also be set
     via environment variables (CONDB_API_SERVER_URL,
-    FRONTIER_CACHE_PROXY_URL, FRONTIER_TTL).
+    FRONTIER_CACHE_PROXY_URL, FRONTIER_PROXY_CONFIG_URL, FRONTIER_TTL).
     """
     overrides: dict[str, Any] = {}
     overrides["verbose"] = verbose
@@ -75,10 +88,16 @@ def main(
         overrides["api_server_url"] = api_server_url
     if cache_proxy_url is not None:
         overrides["cache_proxy_url"] = cache_proxy_url
+    if proxy_config_url is not None:
+        overrides["proxy_config_url"] = proxy_config_url
     if ttl is not None:
         overrides["frontier_ttl"] = ttl
 
-    ctx.obj = ApiClientState(**overrides)
+    try:
+        ctx.obj = ApiClientState(**overrides)
+    except ValueError as exc:  # pydantic.ValidationError
+        typer.echo(f"Error: invalid client options:\n{exc}", err=True)
+        raise typer.Exit(code=2) from None
 
 
 @app.command()
