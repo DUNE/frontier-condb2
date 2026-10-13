@@ -72,6 +72,15 @@ class TestQueryConstruction:
         argv = spy.last
         assert argv[argv.index("-c") + 1] == (
             "(serverurl=http://dunefrontier.fnal.gov:8000/dune_runcon_prod)"
+            "(proxyconfigurl=auto)"
+            "(proxyurl=http://localhost:3128/)"
+        )
+
+    def test_connect_string_omits_proxy_config_when_none(self, spy) -> None:
+        make_wrapper(state=ApiClientState(proxy_config_url="none"), t0=1).run_query()
+        argv = spy.last
+        assert argv[argv.index("-c") + 1] == (
+            "(serverurl=http://dunefrontier.fnal.gov:8000/dune_runcon_prod)"
             "(proxyurl=http://localhost:3128/)"
         )
 
@@ -80,6 +89,44 @@ class TestQueryConstruction:
         assert spy.kwargs[0]["shell"] is False
         assert spy.kwargs[0]["check"] is True
         assert "env" not in spy.kwargs[0]
+
+
+class TestProxyConfigUrl:
+    @pytest.mark.parametrize(
+        ("value", "token"),
+        [
+            ("auto", "(proxyconfigurl=auto)"),
+            (
+                "http://wlcg-wpad.fnal.gov/wpad.dat",
+                "(proxyconfigurl=http://wlcg-wpad.fnal.gov/wpad.dat)",
+            ),
+            ("file:///etc/proxy.pac", "(proxyconfigurl=file:///etc/proxy.pac)"),
+        ],
+        ids=["auto", "http", "file"],
+    )
+    def test_value_reaches_connect_string_verbatim(self, spy, value, token) -> None:
+        make_wrapper(state=ApiClientState(proxy_config_url=value), t0=1).run_query()
+        argv = spy.last
+        assert token in argv[argv.index("-c") + 1]
+
+    def test_token_order_is_server_then_config_then_proxy(self, spy) -> None:
+        make_wrapper(t0=1).run_query()
+        argv = spy.last
+        connect = argv[argv.index("-c") + 1]
+        assert (
+            connect.index("(serverurl=")
+            < connect.index("(proxyconfigurl=")
+            < connect.index("(proxyurl=")
+        )
+
+    def test_batched_queries_share_one_proxy_config_token(self, spy) -> None:
+        state = ApiClientState(proxy_config_url="http://wpad/wpad.dat")
+        ApiClientWrapper.run_queries(
+            [RunConditions(folder="a.b", t0=1), RunConditions(folder="a.b", t0=2)],
+            state=state,
+        )
+        argv = spy.last
+        assert argv[argv.index("-c") + 1].count("(proxyconfigurl=") == 1
 
 
 class TestRunQueries:

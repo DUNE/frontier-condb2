@@ -111,11 +111,16 @@ class ApiClientWrapper:
     def _invoke(
         state: ApiClientState, queries: Sequence[str]
     ) -> subprocess.CompletedProcess[str]:
+        connect_string = f"(serverurl={state.api_server_url})"
+        if state.proxy_config_url != "none":
+            connect_string += f"(proxyconfigurl={state.proxy_config_url})"
+        connect_string += f"(proxyurl={state.cache_proxy_url})"
+
         args: list[str] = [
             str(state.frontier_client_path),
             *_TTL_FLAGS[state.frontier_ttl],
             "-c",
-            f"(serverurl={state.api_server_url})(proxyurl={state.cache_proxy_url})",
+            connect_string,
             *queries,
         ]
 

@@ -58,3 +58,27 @@ class TestValidation:
         assert str(state.cache_proxy_url).startswith("http://localhost:3128")
         assert state.format == "csv"
         assert state.frontier_ttl == 2
+        assert state.proxy_config_url == "auto"
+
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "auto",
+            "none",
+            "http://wlcg-wpad.fnal.gov/wpad.dat",
+            "http://wpad/wpad.dat",
+            "file:///etc/proxy.pac",
+        ],
+        ids=["auto", "none", "http-url", "wpad-url", "file-url"],
+    )
+    def test_proxy_config_url_accepts_documented_forms(self, value) -> None:
+        assert ApiClientState(proxy_config_url=value).proxy_config_url == value
+
+    @pytest.mark.parametrize(
+        "value",
+        ["", "https://example.org/wpad.dat", "wpad/wpad.dat", "proxy.example:8080"],
+        ids=["empty", "https", "no-scheme", "host-port"],
+    )
+    def test_proxy_config_url_rejects_invalid_forms(self, value) -> None:
+        with pytest.raises(ValidationError, match="proxy_config_url"):
+            ApiClientState(proxy_config_url=value)
